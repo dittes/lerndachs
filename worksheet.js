@@ -17,7 +17,7 @@ async function createPDF(){
  const {PDFDocument,StandardFonts,rgb}=PDFLib,doc=await PDFDocument.create(),font=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold);
  doc.setTitle(config.title);doc.setAuthor('Lerndachs');doc.setSubject('Eigene Lernaufgaben für '+Learning.grades[config.grade].label);
  const color={ink:rgb(.22,.26,.30),paper:rgb(1,.98,.94),teal:rgb(.31,.73,.66),yellow:rgb(1,.85,.48),soft:rgb(.91,.95,.91)};
- const clean=value=>[...String(value).replace(/[–—−]/g,'-').replace(/↔/g,'/').replace(/\u00a0/g,' ')].map(c=>{try{font.encodeText(c);return c}catch{return '?'}}).join('');
+ const clean=value=>[...String(value).replace(/[–—−]/g,'-').replace(/→/g,' -> ').replace(/←/g,' <- ').replace(/↔/g,' <-> ').replace(/\u00a0/g,' ')].map(c=>{try{font.encodeText(c);return c}catch{return '?'}}).join('');
  const text=(page,value,x,y,size=11,strong=false,shade=color.ink)=>page.drawText(clean(value),{x,y,size,font:strong?bold:font,color:shade});
  function wrap(value,width,size,strong=false){const f=strong?bold:font,lines=[];let line='';for(const word of clean(value).split(/\s+/)){const next=line?line+' '+word:word;if(f.widthOfTextAtSize(next,size)>width&&line){lines.push(line);line=''}for(const char of (line?' ':'')+word){if(f.widthOfTextAtSize(line+char,size)>width&&line){lines.push(line);line=''}line+=char}}if(line)lines.push(line);return lines}
  function lines(page,value,x,y,width,size,strong=false){const rows=wrap(value,width,size,strong);rows.forEach((r,i)=>text(page,r,x,y-i*(size+4),size,strong));return y-rows.length*(size+4)}
