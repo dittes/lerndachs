@@ -1,16 +1,19 @@
 /* Original procedural effects and three original algorithmic radio loops. */
 (()=>{
-let ctx,master,music,enabled=false,volume=.35,station=0,timer,step=0,playing=false,voices=0,water,sampleNodes=[];
+let ctx,master,music,enabled=state.audioSettings.enabled!==false,volume=state.audioSettings.volume??.35,station=state.audioSettings.station??0,timer,step=0,playing=false,voices=0,water,sampleNodes=[];
 const names=['Wiesenklang · Akustik','Pixelparty · Elektro','Mondcafé · Jazz'];
+function persistAudio(){state.audioSettings={enabled,volume,station};save()}
 function init(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);music=ctx.createGain();music.gain.value=.28;music.connect(master)}ctx.resume().catch(()=>{});master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.03)}
 function tone(hz,d=.2,type='sine',gain=.12,delay=0,dest=master){if(!ctx||voices>18)return;voices++;let o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=type;o.frequency.setValueAtTime(Math.max(30,hz),t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(dest);o.start(t);o.stop(t+d+.02);o.onended=()=>{voices--;o.disconnect();g.disconnect()};return o}
 function noise(d=.2,gain=.1,freq=1200){if(!ctx||voices>18)return;voices++;const n=ctx.createBufferSource(),b=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);n.buffer=b;const f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='lowpass';f.frequency.value=freq;g.gain.value=gain;n.connect(f).connect(g).connect(master);n.start();n.onended=()=>{voices--;n.disconnect();f.disconnect();g.disconnect()};return n}
 function effect(id){if(!enabled)return;init();if(['tea','jar','fishbowl'].includes(id)){tone(1300,.12,'sine',.1);tone(1920,.09,'sine',.04,.04)}else if(['books','plant','flower','hanging','tree','curtain','blanket'].includes(id))noise(.35,.16,2200);else if(['counter','watering','cloud'].includes(id))noise(.8,.19,650);else if(id==='balloon'){noise(.13,.4,450);tone(140,.12,'triangle',.25)}else if(id==='cat'){tone(330,.4,'triangle',.1);tone(440,.25,'sine',.08,.15)}else if(id==='dog'){tone(180,.16,'triangle',.1);tone(130,.2,'triangle',.08,.12)}else if(id==='rabbit'){noise(.22,.08,1800);tone(540,.12,'sine',.03)}else if(id==='camera'){noise(.05,.25,3500);noise(.12,.12,750)}else if(id==='clock'){[0,.08,.16,.24].forEach(t=>tone(900,.04,'square',.04,t))}else if(id==='guitar'){[196,246.94,293.66,392].forEach((h,i)=>tone(h,1.2,'triangle',.12,i*.04))}else if(['fridge','cabinet','toaster'].includes(id)){noise(.12,.2,300);tone(180,.12,'triangle',.08)}else if(id==='radio')noise(.2,.11,2200);else if(id==='reward'){[523,659,784,1046].forEach((h,i)=>tone(h,.4,'sine',.1,i*.09))}else tone(({sun:660,sofa:110,rug:140,stool:210,table:260,kettle:950,fruit:440})[id]||360,.18,'triangle',.12)}
 function tick(){if(!playing||!enabled||document.hidden)return;init();const melodies=[[0,4,7,12,7,4,2,7,5,9,12,9,7,4,2,4],[0,12,7,3,10,7,15,12,0,7,12,15,10,7,3,7],[0,4,7,11,14,11,7,4,2,5,9,12,16,12,9,5]];let base=[196,220,146.83][station],n=melodies[station][step%16],hz=base*2**(n/12);tone(hz,[.7,.18,.45][station],['triangle','square','sine'][station],[.09,.035,.12][station],0,music);if(step%4===0)tone(base/2,.65,'sine',.14,0,music);if(station===2&&step%2===0){tone(hz*1.25,.4,'sine',.04,.06,music);tone(hz*1.5,.4,'sine',.04,.06,music)}step++}
-function radio(on){playing=on;clearInterval(timer);if(on){if(!enabled)setEnabled(true);init();tick();timer=setInterval(tick,[320,180,420][station])}document.querySelector('#radio-dock').hidden=!on;document.querySelector('#radio-station').textContent=names[station]}
-function setEnabled(on){enabled=on;init();const b=document.querySelector('#sound-toggle');b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'Töne ausschalten':'Töne einschalten');b.style.opacity=on?'1':'.65';if(!on&&water){water.stop();water=null}}
+function radio(on){playing=on;clearInterval(timer);if(on){if(!enabled)setEnabled(true);init();tick();timer=setInterval(tick,[320,180,420][station])}document.querySelector('#radio-dock').hidden=!on;document.querySelector('#radio-station').textContent=names[station];document.querySelector('#radio-select').value=String(station)}
+function setEnabled(on){enabled=on;init();const b=document.querySelector('#sound-toggle');b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'Töne ausschalten':'Töne einschalten');b.style.opacity=on?'1':'.65';if(!on&&water){water.stop();water=null}persistAudio()}
 document.querySelector('#sound-toggle').onclick=()=>{setEnabled(!enabled);if(enabled)effect('tea')};
-document.querySelector('#radio-tune').onclick=()=>{station=(station+1)%3;effect('radio');step=0;radio(true)};
+function setStation(n){station=Number(n);step=0;for(const o of current().filter(o=>o.id==='radio'))o.on=true;radio(true);persistAudio()}
+const select=document.querySelector('#radio-select');select.innerHTML=names.map((n,i)=>`<option value="${i}">${n}</option>`).join('');select.value=station;select.onchange=e=>setStation(e.target.value);
+document.querySelector('#radio-tune').onclick=()=>{setStation((station+1)%names.length)};
 document.querySelector('#radio-power').onclick=()=>{for(const o of current().filter(o=>o.id==='radio'))o.on=false;save();radio(false)};
 window.addEventListener('world-use',e=>{if(e.detail.id!=='counter')return;setTimeout(()=>{if(water){water.stop();water=null}if(!enabled||!current().find(o=>o.uid===e.detail.uid)?.on)return;init();const b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*.03;water=ctx.createBufferSource();water.buffer=b;water.loop=true;const f=ctx.createBiquadFilter();f.frequency.value=900;water.connect(f).connect(master);water.start()},0)});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)ctx?.suspend();else if(enabled)ctx?.resume()});
@@ -22,8 +25,31 @@ function playSample(sample){
  for(const [hz,durationSeconds,gain,delay] of sample.notes){sampleNodes.push(tone(hz,durationSeconds,'sine',gain,delay));duration=Math.max(duration,(delay+durationSeconds)*1000)}
  return duration;
 }
-window.WorldSound={effect,radio,playSample,stopSample,sync(){if(playing&&!current().some(o=>o.id==='radio'&&o.on))radio(false);if(water&&!current().some(o=>o.id==='counter'&&o.on)){water.stop();water=null}},setVolume(v){volume=Number(v);if(ctx)master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.05)},get status(){return {enabled,playing,station,volume,voices}}};
+window.WorldSound={effect,radio,playSample,stopSample,sync(){if(playing&&!current().some(o=>o.id==='radio'&&o.on))radio(false);if(water&&!current().some(o=>o.id==='counter'&&o.on)){water.stop();water=null}},setVolume(v){volume=Math.max(0,Math.min(.7,Number(v)||0));persistAudio();if(ctx)master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.05)},get status(){return {enabled,playing,station,volume,voices}}};
+document.querySelector('#radio-dock').hidden=!current().some(o=>o.id==='radio'&&o.on);document.querySelector('#radio-station').textContent=names[station];
+let activated=false;function activate(){if(activated)return;activated=true;if(enabled&&current().some(o=>o.id==='radio'&&o.on))radio(true);else if(enabled)setEnabled(true);document.removeEventListener('pointerdown',activate,true);document.removeEventListener('keydown',activate,true)}document.addEventListener('pointerdown',activate,true);document.addEventListener('keydown',activate,true);
 const obs=new MutationObserver(()=>{const c=document.querySelector('#panel-content');if(activePanel==='help'&&!document.querySelector('#volume-control')){const row=document.createElement('label');row.className='volume-setting';row.innerHTML='Lautstärke <input id="volume-control" type="range" min="0" max="0.7" step="0.05" value="'+volume+'">';c.append(row);row.querySelector('input').oninput=e=>WorldSound.setVolume(e.target.value)}});obs.observe(document.querySelector('#panel-content'),{childList:true});
+})();
+
+;
+(()=>{
+const J=LerndachsJourney,esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dialog=document.createElement('dialog');dialog.id='character-dialog';dialog.setAttribute('aria-labelledby','character-title');document.body.append(dialog);
+let mode,chosen,personUid,callback;
+function open(next='add',done,who){mode=next;callback=done;personUid=who;const person=J.people().find(p=>p.uid===(who||J.profile.playerUid));chosen=next==='add'||next==='initial'?'milo':person?.id||'milo';
+ document.querySelector('#panel').close();document.querySelector('#learning-dialog').close();
+ dialog.innerHTML=`<div class="dialog-top"><div><p class="eyebrow">DEINE FIGUR · DEINE GESCHICHTE</p><h2 id="character-title">${next==='initial'?'Wer möchtest du sein?':next==='add'?'Ein neuer Freund':'Deine Figur gestalten'}</h2></div>${next==='initial'?'':'<button class="icon-button" id="close-character" aria-label="Schließen">×</button>'}</div><div class="people-grid">${WorldArt.cast.map(i=>`<button data-person="${i.id}" aria-pressed="${chosen===i.id}">${J.preview(i)}<strong>${esc(i.name)}</strong></button>`).join('')}</div><form id="person-form"><label class="pet-name-label">Name <input id="character-name" required maxlength="24" autocomplete="off" aria-label="Name deiner Figur"></label><button id="confirm-character" class="journey-primary wide">${next==='initial'?'Mein Abenteuer starten':next==='add'?'Freund hinzufügen':'Änderungen speichern'} →</button><p class="note">${next==='initial'?'Du startest mit einer Figur. Weitere Freunde kannst du später hinzufügen.':'Figuren und eigene Namen kosten keine Sterne.'}</p><p id="character-error" role="status"></p></form>`;
+ dialog.querySelector('#character-name').value=next==='initial'||next==='add'?WorldArt.names[chosen]:person?.name||WorldArt.names[chosen];
+ dialog.querySelectorAll('[data-person]').forEach(b=>b.onclick=()=>{const input=dialog.querySelector('input');if(input.value===WorldArt.names[chosen])input.value=WorldArt.names[b.dataset.person];chosen=b.dataset.person;dialog.querySelectorAll('[data-person]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.person===chosen))});
+ dialog.querySelector('#close-character')?.addEventListener('click',()=>dialog.close());
+ dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(!J.person(chosen,dialog.querySelector('input').value,mode,personUid)){dialog.querySelector('#character-error').textContent='Bitte wähle einen Namen. In deiner Welt können bis zu 20 Figuren mitspielen.';return}dialog.close();callback?.();window.dispatchEvent(new Event('learning-celebration'))};
+ dialog.showModal();
+}
+ dialog.addEventListener('cancel',e=>{if(mode==='initial')e.preventDefault()});
+function render(c){c.querySelector('.card-grid')?.remove();c.querySelectorAll('.note,.wide').forEach(e=>e.remove());const body=document.createElement('div');body.innerHTML=`<div class="friends-actions"><button class="journey-primary" data-friend-mode="change">Meine Figur ändern</button><button class="journey-primary" data-friend-mode="add">+ Freund hinzufügen</button></div><div class="card-grid">${J.people().map(o=>`<article class="item-card"><div class="item-art">${J.preview({id:o.id})}</div><div class="item-body"><h3>${esc(o.name)}</h3><p>${o.player?'Das bist du':'Dein Freund'}</p><button data-person-edit="${o.uid}">Figur & Namen ändern</button><button data-person-show="${o.uid}">In meine Welt holen</button></div></article>`).join('')}</div><p class="note">Du entscheidest, wer mitspielt. Namen bleiben auf diesem Gerät gespeichert. Eingepackte Freunde findest du auch in deiner Tasche.</p>`;c.append(body)}
+ document.querySelector('#panel-content').addEventListener('click',e=>{const b=e.target.closest('button');if(b?.dataset.friendMode)open(b.dataset.friendMode);if(b?.dataset.personEdit)open(J.profile.playerUid===b.dataset.personEdit?'change':'edit',null,b.dataset.personEdit);if(b?.dataset.personShow)J.showPerson(b.dataset.personShow)});
+window.LerndachsFriends={open,render};
+window.LerndachsBundles={render(c){c.querySelector('.card-grid')?.remove();c.querySelectorAll('.note,.wide').forEach(e=>e.remove());const grid=document.createElement('div');grid.className='bundle-grid';grid.innerHTML=LerndachsBundleData.map(b=>{const counts={};b.items.forEach(id=>counts[id]=(counts[id]||0)+1);const value=b.items.reduce((sum,id)=>sum+J.catalogue.find(i=>i.id===id).price,0);return `<article class="bundle-card"><div class="bundle-art">${b.items.slice(0,3).map(id=>J.preview({id})).join('')}</div><h3>${b.name}</h3><p>${b.note}</p><strong>300 ✦ · Inhalt im Wert von ${value} ✦</strong><p>${Object.entries(counts).map(([id,n])=>`${n} × ${esc(WorldArt.names[id])}`).join(' · ')}</p><button class="journey-primary" data-bundle="${b.id}" ${Lernwelt.snapshot().balance<b.price?'disabled':''}>Paket für 300 Sterne öffnen</button><small>${b.items.length} Dinge · Du sparst 200 Sterne · Kommt in deine Tasche</small></article>`}).join('');c.append(grid);grid.onclick=e=>{const button=e.target.closest('[data-bundle]');if(!button)return;button.disabled=true;const b=LerndachsBundleData.find(b=>b.id===button.dataset.bundle),result=J.purchaseBundle(b);if(!result.ok){toast(result.message);button.disabled=false;return}grid.innerHTML=`<div class="empty"><strong>${b.name} ausgepackt!</strong>${b.items.length} Dinge warten in deiner Tasche.<button class="journey-primary" id="bundle-bag">Meine Tasche öffnen →</button></div>`;grid.querySelector('button').onclick=()=>showPanel('bag')}}};
 })();
 
 ;
@@ -2919,7 +2945,7 @@ function chooseGrade(){
  document.querySelector('#learn-close').hidden=progress.grade===null;reveal();
 }
 function starter(){
- if(progress.grade===null){chooseGrade();return}if(progress.starterUnlocked){open();return}if(progress.starterEarned){packScreen();return}
+ if(progress.grade===null){chooseGrade();return}if(!J.player()){cleanup();dialog.close();LerndachsFriends.open('initial',starter);return}if(progress.starterUnlocked){open();return}if(progress.starterEarned){packScreen();return}
  cleanup();mode='intro';correct=false;const q=LerndachsIntro[progress.grade];
  content.innerHTML=`<div class="intro-task"><p class="learn-eyebrow">${grades[progress.grade].label.toUpperCase()} · DEIN ERSTES ABENTEUER</p><h2 id="learn-title">Ein Zuhause für deine Ideen.</h2><p>Noch ist dein Haus leer. Löse diese leichte Aufgabe und du bekommst ein Paket mit Sofa, Tisch, Pflanze und weiteren Dingen zum Einziehen.</p><div class="moving-boxes">${q[3]}</div><h3>${q[0]}</h3><button id="read-intro" class="read-button">♫ Vorlesen</button><div class="answer-grid">${q[1].map((a,i)=>`<button data-intro-answer="${i}"><b>${String.fromCharCode(65+i)}</b>${a}</button>`).join('')}</div><div id="intro-feedback" role="status">Du darfst ausprobieren. Es gibt keinen Zeitdruck.</div><div class="starter-preview">${['sofa','table','plant'].map(id=>`<div>${J.preview(J.catalogue.find(i=>i.id===id))}<span>${WorldArt.names[id]}</span></div>`).join('')}<span class="starter-more">+ 9 weitere Dinge</span></div></div>`;
  document.querySelector('#learn-close').hidden=false;reveal();
@@ -2947,8 +2973,8 @@ function seek(){
  document.querySelector('#quest-open').onclick=question;
  document.querySelector('#quest-stop').onclick=()=>{progress.active=null;persist();resetStrip()};
 }
-function prepareMission(q){const need=({carry:['milo','tea'],water:['plant','watering'],left:['table','stool'],night:['sun']})[q[7].goal]||[];for(const id of need)J.bring(id);J.prepare(q[7].goal);Lernwelt.focus(q[0])}
-function commonQuestion(q){const meta=q[7],p=active(),bounds=WorldArt.bounds[q[0]];return `<div class="question-heading"><span class="learn-eyebrow">${p.title} · ${grades[progress.grade].label}</span><span class="question-reward">✦ +${finished(q)?0:15}</span></div><div class="question-art ${p.color}"><svg viewBox="${bounds.join(' ')}" aria-hidden="true">${J.art(q[0])}</svg><span>${escape(q[6])}</span></div><p class="task-skill">${escape(meta.skill)}</p>${progress.together?`<p class="turn-label">Spieler ${progress.turn} spielt · Spieler ${progress.turn===1?2:1} hilft und erklärt.</p>`:''}<h2 id="learn-title">${escape(q[2])}</h2><div class="task-tools"><button id="read-question" class="read-button">♫ Vorlesen</button><button id="task-hint" class="read-button">✦ Kleiner Tipp</button>${meta.audio?'<button id="play-sample" class="sample-button">▶ Hörprobe</button>':''}</div>${meta.audio?'<p class="audio-note">Die Hörprobe schaltet den Ton ein. Höre beliebig oft oder wähle „Später“.</p>':''}<div id="task-hint-text" class="task-hint" hidden>${escape(meta.hint)}</div>`}
+function prepareMission(q){if(q[7].goal==='carry'&&J.player())J.showPerson(J.player().uid);const need=({carry:[J.player()?.id,'tea'],water:['plant','watering'],left:['table','stool'],night:['sun']})[q[7].goal]||[];for(const id of need)J.bring(id);J.prepare(q[7].goal);Lernwelt.focus(q[0])}
+function commonQuestion(q){const meta=q[7],p=active(),bounds=WorldArt.bounds[q[0]];return `<div class="question-heading"><span class="learn-eyebrow">${p.title} · ${grades[progress.grade].label}</span><span class="question-reward">✦ +${finished(q)?0:15}</span></div><div class="question-art ${p.color}"><svg viewBox="${bounds.join(' ')}" aria-hidden="true">${J.art(q[0])}</svg><span>${escape(q[6])}</span></div><p class="task-skill">${escape(meta.skill)}</p>${progress.together?`<p class="turn-label">Spieler ${progress.turn} spielt · Spieler ${progress.turn===1?2:1} hilft und erklärt.</p>`:''}<h2 id="learn-title">${escape(q[7].goal==='carry'?q[2].replaceAll('Milo',J.player()?.characterName||WorldArt.names[J.player()?.id]||'deine Figur'):q[2])}</h2><div class="task-tools"><button id="read-question" class="read-button">♫ Vorlesen</button><button id="task-hint" class="read-button">✦ Kleiner Tipp</button>${meta.audio?'<button id="play-sample" class="sample-button">▶ Hörprobe</button>':''}</div>${meta.audio?'<p class="audio-note">Die Hörprobe schaltet den Ton ein. Höre beliebig oft oder wähle „Später“.</p>':''}<div id="task-hint-text" class="task-hint" hidden>${escape(meta.hint)}</div>`}
 function footer(){return '<div id="answer-feedback" role="status" aria-live="polite">Du hast Zeit. Probiere es aus!</div><div class="question-actions"><button id="question-back">← Zurück zur Welt</button><button id="skip-question">Später →</button><button id="next-question" hidden>Weiter entdecken →</button></div>'}
 function question(){
  const q=currentTask();if(!q)return;document.querySelector('#panel').close();cleanup();mode='question';correct=false;worldAttemptDone=false;window.LerndachsEvidence?.start(q,progress.active);document.querySelector('#learn-close').hidden=false;
@@ -2965,7 +2991,7 @@ function success(q){
  if(correct)return;correct=true;stopSample();window.LerndachsEvidence?.finish(q);window.dispatchEvent(new Event('learning-celebration'));const already=finished(q);J.reward(taskKey(q));if(!already)window.dispatchEvent(new Event('character-celebrate'));
  const feedback=document.querySelector('#answer-feedback');feedback.classList.add('correct-feedback');feedback.textContent='Geschafft! '+q[5]+(already?'':' +15 Sterne für deine Welt.');
  document.querySelector('#next-question').hidden=false;document.querySelector('#skip-question').hidden=true;content.querySelectorAll('[data-answer],#check-garden,#enter-world-task').forEach(b=>b.disabled=true);WorldSound.effect('reward');
- for(const [n,name] of [[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']])if(progress.done.length>=n&&!progress.badges.includes(name))progress.badges.push(name);persist();
+ for(const [n,name] of [[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']])if(progress.done.length>=n&&!progress.badges.includes(name))progress.badges.push(name);persist();window.dispatchEvent(new CustomEvent('learning-success',{detail:{subject:active()?.subject||'math'}}));
 }
 function answer(i){if(correct)return;const q=currentTask(),button=content.querySelector(`[data-answer="${i}"]`);if(i!==q[4]){window.LerndachsEvidence?.mistake();button.classList.add('try-again');button.disabled=true;document.querySelector('#answer-feedback').textContent='Noch nicht ganz. '+q[7].hint+' Probiere es noch einmal.';WorldSound.effect('tea');return}button.classList.add('is-correct');success(q)}
 function gardenTarget(){return [3,5,8,12,18][progress.grade]}
@@ -3034,7 +3060,7 @@ function completeWorld(q){if(worldAttemptDone)return;worldAttemptDone=true;quest
 window.addEventListener('world-move',()=>{
  const q=currentTask();if(mode!=='world'||q?.[7].type!=='world'||worldAttemptDone)return;
  const snap=Lernwelt.snapshot(),objects=snap.placed[snap.home];
- if(q[7].goal==='carry'&&objects.some(o=>o.id==='tea'&&objects.find(c=>c.uid===o.carrier)?.id==='milo'))completeWorld(q);
+ if(q[7].goal==='carry'&&objects.some(o=>o.id==='tea'&&o.carrier===J.profile.playerUid))completeWorld(q);
  if(q[7].goal==='left'){const table=objects.find(o=>o.id==='table');if(table&&objects.some(o=>o.id==='stool'&&o.x<table.x&&table.x-o.x<250&&Math.abs(o.y-table.y)<150))completeWorld(q)}
 });
 window.addEventListener('world-use',e=>{
@@ -3048,9 +3074,9 @@ document.querySelector('#learn-close').onclick=close;
 dialog.addEventListener('cancel',e=>{if(progress.grade===null)e.preventDefault()});
 dialog.addEventListener('close',cleanup);
 window.addEventListener('request-grade-settings',chooseGrade);
-document.querySelector('#adventure-button').onclick=open;document.querySelector('#learn-button').onclick=open;
+document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=false;persist();if(!progress.starterUnlocked)starter();else if(currentTask())question();else Learning.nextFresh(true)};document.querySelector('#learn-button').onclick=open;
 window.addEventListener('request-starter',starter);window.addEventListener('request-learning',open);
-window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(p)begin(p.id)},nextFresh(){if(!progress.starterUnlocked)return;const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
+window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(p)begin(p.id)},nextFresh(manual=false){if(!progress.starterUnlocked)return;const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();if(manual)return;const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
 updateHUD();if(!Number.isInteger(progress.grade)||!grades[progress.grade]){progress.grade=null;chooseGrade()}else if(!progress.starterUnlocked)starter();else if(progress.active)seek();
 })();
 
@@ -3144,7 +3170,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),active=new Map(),tu
 let nextIdle=performance.now()+6500,celebrate=false;
 const blocked=()=>document.hidden||reduced.matches||document.body.classList.contains('no-motion');
 const busy=()=>!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
-const people=()=>[...document.querySelectorAll('#objects [data-kind="milo"],#objects [data-kind="lumi"]')];
+const people=()=>[...document.querySelectorAll('#objects .person')];
 function sync(){
  const now=performance.now();
  if(blocked()){active.clear();celebrate=false}
@@ -3174,7 +3200,7 @@ function gesture(el,type,delay=0){
  active.set(uid,{type,start,end:start+1800});sync();
 }
 window.addEventListener('world-use',({detail})=>{
- if(!['milo','lumi'].includes(detail.id))return;
+ if(!WorldArt.chars.has(detail.id))return;
  const el=people().find(e=>e.dataset.uid===detail.uid),n=turns.get(detail.uid)||0;
  turns.set(detail.uid,n+1);gesture(el,['wave','hop','look'][n%3]);
 });
@@ -3267,7 +3293,7 @@ function tick(){
  if(document.hidden||!p.starterUnlocked)return;
  const busy=!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
  if(!busy)p.playSincePrompt=Math.min(interval,p.playSincePrompt+elapsed);
- if(p.playSincePrompt>=interval&&!busy){p.playSincePrompt=0;save();Learning.nextFresh()}
+ if(p.playSincePrompt>=interval&&!busy){p.playSincePrompt=0;p.taskWaiting=true;save();window.dispatchEvent(new Event('task-waiting'))}
  else if(now-lastSave>30000)save();
 }
 document.addEventListener('visibilitychange',()=>{last=performance.now();save()});window.addEventListener('pagehide',save);setInterval(tick,1000);
@@ -3276,10 +3302,48 @@ function celebrate(){
  document.querySelector('#learning-confetti')?.remove();clearTimeout(confettiTimer);
  const layer=document.createElement('div');layer.id='learning-confetti';layer.setAttribute('aria-hidden','true');
  const quiet=matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.classList.contains('no-motion');layer.className=quiet?'quiet-confetti':'';
- for(let i=0;i<(quiet?12:48);i++){const piece=document.createElement('i');piece.style.cssText=`--left:${(i*37)%100}%;--drift:${(i%7-3)*30}px;--turn:${i%2?620:-480}deg;--delay:${i%8*.045}s;--color:${['#4fbaa8','#ffc958','#edb9cf','#f28c72','#ac9bd4'][i%5]}`;layer.append(piece)}
+ for(let i=0;i<(quiet?18:144);i++){const piece=document.createElement('i');piece.style.cssText=`--left:${(i*37)%100}%;--drift:${(i%7-3)*30}px;--turn:${i%2?620:-480}deg;--delay:${i%8*.045}s;--color:${['#4fbaa8','#ffc958','#edb9cf','#f28c72','#ac9bd4'][i%5]}`;layer.append(piece)}
  // Dialog content is in the browser top layer; append confetti there for visible celebrations.
  const dialog=[...document.querySelectorAll('dialog[open]')].at(-1);(dialog||document.body).append(layer);
- confettiTimer=setTimeout(()=>layer.remove(),quiet?1000:2300);
+ confettiTimer=setTimeout(()=>layer.remove(),quiet?1300:3400);
 }
 window.addEventListener('learning-celebration',celebrate);
+})();
+
+;
+/* A cross-subject challenge; each success is recorded from real learning evidence. */
+(()=>{
+const J=LerndachsJourney,p=J.profile,paths=LerndachsCurriculum.paths,esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+p.halloween??={started:false,unlocked:false,enabled:false,subjects:[],costumes:{}};const h=p.halloween;h.costumes??={};
+const props=[{id:'halloween-pumpkin',name:'Kürbislicht',x:390,y:800},{id:'halloween-ghost',name:'Freundliches Gespenst',x:1060,y:420},{id:'halloween-bats',name:'Fledermaus-Girlande',x:640,y:150},{id:'halloween-candy',name:'Süße Schale',x:920,y:780}];
+function art(id){const {R,E,P,C}=WorldArt;
+ if(id==='halloween-pumpkin')return `${E(0,0,65,10,'#38434c20')}${P('M-4-91q-2-25 15-22','none',C.leaf,9)}${E(0,-44,61,47,'#f6a34f',C.ink)}${E(0,-44,28,47,'#ffbd63',C.ink,2)}${P('M-35-48l16-19 9 21Zm45 2 9-21 16 19ZM-31-27l16 12 15-10 15 10 16-12-10 22h-42Z','#fff2ac',C.ink,2)}`;
+ if(id==='halloween-ghost')return `${P('M-55 0v-70q0-77 55-77t55 77V0L35-17 17 0 0-17-17 0-35-17Z','#fffdf4',C.ink)}${E(-18,-81,7,12,C.ink)}${E(18,-81,7,12,C.ink)}${P('M-10-51q10 13 20 0','none',C.ink,3)}${E(-35,-57,9,5,C.pink)}${E(35,-57,9,5,C.pink)}`;
+ if(id==='halloween-bats')return `${P('M-160-25Q0 30 160-25','none',C.ink,3)}${[-110,0,110].map(x=>`<g transform="translate(${x} 0)">${P('M0-8l-28-20-20 25 23-1 10 16L0 6 15 12 25-4l23 1-20-25Z','#685376',C.ink,2)}${E(-5,-1,2,3,C.white)}${E(5,-1,2,3,C.white)}</g>`).join('')}`;
+ if(id==='halloween-candy')return `${E(0,-25,53,17,'#ac9bd4',C.ink)}${P('M-53-25q8 57 53 57t53-57Z','#ac9bd4',C.ink)}${[-25,0,25].map((x,i)=>`<g transform="translate(${x} -32)">${P('M-10-10l-10-7v24l10-7m20-10 10-7v24L10 0','#f28c72',C.ink,2)}${R(-11,-14,22,24,['#ffe07e','#93d6eb','#edb9cf'][i],7)}</g>`).join('')}`;
+ return '';
+}
+for(const prop of props){WorldArt.bounds[prop.id]=prop.id==='halloween-bats'?[-170,-45,340,90]:[-70,-155,140,195];WorldArt.names[prop.id]=prop.name;J.catalogue.push({id:prop.id,name:prop.name,note:'Deine Halloween-Belohnung.',price:0,kind:'season'})}
+function dress(){for(const el of document.querySelectorAll('#objects .person')){el.querySelector('.halloween-costume')?.remove();if(!h.enabled)continue;const costume=h.costumes[el.dataset.uid]||'witch';if(costume==='none')continue;const sprite=el.querySelector('.sprite'),g=document.createElementNS('http://www.w3.org/2000/svg','g');g.classList.add('halloween-costume');g.setAttribute('pointer-events','none');g.innerHTML=costume==='cat'?'<path d="M-40-209l3-45 27 29m20 0 27-29 3 45" fill="#685376" stroke="#38434c" stroke-width="3"/><path d="m-5-155 5 6 5-6Z" fill="#f28c72" stroke="#38434c" stroke-width="2"/><path d="M-18-148l-24-5m24 11-24 4m60-10 24-5m-24 11 24 4" stroke="#38434c" stroke-width="2"/>':costume==='hero'?'<path d="M-32-112l-39 98 71-15 71 15-39-98Z" fill="#ac9bd4" stroke="#38434c" stroke-width="3"/><path d="M-38-181q38-15 76 0l-4 20-27 2-7-8-7 8-27-2Z" fill="#f28c72" stroke="#38434c" stroke-width="2"/><ellipse cx="-17" cy="-172" rx="6" ry="4" fill="#fffdf4"/><ellipse cx="17" cy="-172" rx="6" ry="4" fill="#fffdf4"/>':'<path d="m-49-214 41-73 38 73Z" fill="#685376" stroke="#38434c" stroke-width="3"/><ellipse cx="0" cy="-212" rx="62" ry="11" fill="#685376" stroke="#38434c" stroke-width="3"/><path d="M-23-234h46" stroke="#f6b34f" stroke-width="8"/><path d="m-25-150 3-8 3 8 8 3-8 3-3 8-3-8-8-3Z" fill="#ac9bd4"/>';(sprite.querySelector('.character-action')||sprite).append(g)}}
+let syncing=false;
+function sync(){if(syncing)return;syncing=true;document.body.classList.toggle('halloween-world',!!h.enabled);for(const el of document.querySelectorAll('[data-kind^="halloween-"]'))el.style.display=h.enabled?'':'none';dress();syncing=false}
+const baseRender=J.render;J.render=()=>{baseRender();sync()};new MutationObserver(sync).observe(document.querySelector('#objects'),{childList:true});
+function reward(){if(h.unlocked)return;h.unlocked=true;h.enabled=true;for(const prop of props){if(!state.owned.includes(prop.id))state.owned.push(prop.id);state.placed[state.home].push({...prop,uid:'reward-'+prop.id,s:1,layer:prop.id==='halloween-bats'?2:3.8})}J.render();window.dispatchEvent(new Event('learning-celebration'));toast('Geschafft! Deine Halloween-Welt ist freigeschaltet.')}
+function observe(){if(!h.started||h.unlocked)return;let changed=false;for(const e of p.evidence||[])if((h.baseline||[]).indexOf(e.id)<0&&!h.subjects.includes(e.subject)&&paths.some(path=>path.subject===e.subject)){h.subjects.push(e.subject);changed=true}if(h.subjects.length===paths.length)reward();else if(changed)J.save()}
+window.addEventListener('learning-celebration',()=>{observe();sync()});
+const button=document.createElement('button');button.id='halloween-button';button.className='round-button';button.setAttribute('aria-label','Halloween-Challenge öffnen');button.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6q-1-4 3-4M12 6C0 3 0 23 12 21 24 23 24 3 12 6Z"/><path d="m6 12 3-3 1 4Zm8 1 1-4 3 3ZM7 16l3 2 2-1 2 1 3-2"/></svg>';document.querySelector('.utility-buttons').append(button);
+const dialog=document.createElement('dialog');dialog.id='halloween-dialog';dialog.setAttribute('aria-labelledby','halloween-title');document.body.append(dialog);
+function open(){if(!p.starterUnlocked){window.dispatchEvent(new Event('request-starter'));return}dialog.innerHTML=`<div class="dialog-top"><div><p class="eyebrow">EIN KLEINES ABENTEUER DURCH ALLE FÄCHER</p><h2 id="halloween-title">Die Halloween-Challenge</h2></div><button class="icon-button" id="halloween-close" aria-label="Schließen">×</button></div><p>Löse ab dem Start eine Aufgabe aus jedem Aufgabenbereich. Tipps und neue Versuche sind erlaubt. Bereits gelöste Aufgaben kannst du dafür wiederholen.</p><div class="challenge-list">${paths.map(path=>`<button data-challenge="${path.subject}" ${h.unlocked?'disabled':''}><span>${h.subjects.includes(path.subject)?'✓':path.icon}</span><strong>${esc(LerndachsCurriculum.sources[path.subject].title)}</strong><small>${h.subjects.includes(path.subject)?'Geschafft':'Eine Aufgabe entdecken →'}</small></button>`).join('')}</div>${h.unlocked?`<button id="halloween-toggle" class="journey-primary wide">Halloween ${h.enabled?'ausschalten':'einschalten'}</button><h3>Verkleiden & schminken</h3><div class="costume-list">${J.people().map(o=>`<label>${esc(o.name)}<select data-costume="${o.uid}" aria-label="Kostüm für ${esc(o.name)}">${[['witch','Zauberhut & Sternschminke'],['cat','Katzenohren & Schnurrhaare'],['hero','Superheld & Maske'],['none','Ohne Kostüm']].map(([id,label])=>`<option value="${id}" ${(h.costumes[o.uid]||'witch')===id?'selected':''}>${label}</option>`).join('')}</select></label>`).join('')}</div>`:`<p class="note">Deine Belohnung: Kürbislicht, Gespenst, Fledermäuse und eine Süßigkeitenschale. Dazu Kostüme und Gesichtsschminke für alle Figuren.</p><button id="challenge-start" class="journey-primary wide">${h.started?'Weiter zur ersten offenen Aufgabe':'Challenge starten'} →</button>`}`;
+ dialog.querySelector('#halloween-close').onclick=()=>dialog.close();dialog.querySelector('#challenge-start')?.addEventListener('click',()=>{start();const path=paths.find(path=>!h.subjects.includes(path.subject));dialog.close();Learning.openSubject(path.subject)});dialog.querySelectorAll('[data-challenge]').forEach(b=>b.onclick=()=>{start();dialog.close();Learning.openSubject(b.dataset.challenge)});dialog.querySelector('#halloween-toggle')?.addEventListener('click',()=>{h.enabled=!h.enabled;J.save();sync();open()});dialog.querySelectorAll('[data-costume]').forEach(select=>select.onchange=()=>{h.costumes[select.dataset.costume]=select.value;J.save();sync()});if(!dialog.open)dialog.showModal()}
+function start(){if(!h.started){h.started=true;h.baseline=(p.evidence||[]).map(e=>e.id);J.save()}}
+window.addEventListener('learning-success',({detail})=>{if(!h.started||h.unlocked||!paths.some(path=>path.subject===detail.subject))return;if(!h.subjects.includes(detail.subject)){h.subjects.push(detail.subject);if(h.subjects.length===paths.length)reward();else J.save()}});
+button.onclick=open;window.LerndachsSeason={art,sync,open};sync();
+})();
+
+;
+/* The world has one quiet invitation: a badger head, with no floating action tray. */
+(()=>{
+const head=document.querySelector('#adventure-button');head.title='Eine neue Aufgabe entdecken';
+function refresh(){head.hidden=false;const waiting=!document.querySelector('#learning-dialog').open;head.classList.toggle('has-task',waiting);const q=Learning.currentTask;head.setAttribute('aria-label',q?'Aufgabe anzeigen: '+q[1]:'Nächste Aufgabe entdecken')}
+window.addEventListener('world-saved',refresh);window.addEventListener('task-waiting',refresh);document.querySelector('#learning-dialog').addEventListener('close',refresh);refresh();
 })();

@@ -5,7 +5,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),active=new Map(),tu
 let nextIdle=performance.now()+6500,celebrate=false;
 const blocked=()=>document.hidden||reduced.matches||document.body.classList.contains('no-motion');
 const busy=()=>!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
-const people=()=>[...document.querySelectorAll('#objects [data-kind="milo"],#objects [data-kind="lumi"]')];
+const people=()=>[...document.querySelectorAll('#objects .person')];
 function sync(){
  const now=performance.now();
  if(blocked()){active.clear();celebrate=false}
@@ -35,7 +35,7 @@ function gesture(el,type,delay=0){
  active.set(uid,{type,start,end:start+1800});sync();
 }
 window.addEventListener('world-use',({detail})=>{
- if(!['milo','lumi'].includes(detail.id))return;
+ if(!WorldArt.chars.has(detail.id))return;
  const el=people().find(e=>e.dataset.uid===detail.uid),n=turns.get(detail.uid)||0;
  turns.set(detail.uid,n+1);gesture(el,['wave','hop','look'][n%3]);
 });

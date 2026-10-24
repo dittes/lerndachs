@@ -1,0 +1,8 @@
+/* Original variants of the Lerndachs cast. */
+(()=>{
+const A=WorldArt;
+const variants={nia:{base:'lumi',name:'Nia',skin:'#bc865e',hair:'#302b35',shirt:'#b4a0da',extra:'<path d="M-29-172h23m12 0h23" fill="none" stroke="#38434c" stroke-width="3"/><circle cx="-17" cy="-174" r="13" fill="none" stroke="#38434c" stroke-width="3"/><circle cx="17" cy="-174" r="13" fill="none" stroke="#38434c" stroke-width="3"/>'},jona:{base:'milo',name:'Jona',skin:'#f2c5a7',hair:'#bd7546',shirt:'#93d6eb',extra:'<path d="M-43-205q40-49 86 0Z" fill="#f28c72" stroke="#38434c" stroke-width="3"/><path d="M-40-206h93" stroke="#38434c" stroke-width="5"/>'},sami:{base:'milo',name:'Sami',skin:'#84523e',hair:'#292e35',shirt:'#f6b34f',extra:'<path d="m-14-116 14 17 14-17" fill="none" stroke="#fff4d9" stroke-width="6"/>'},ella:{base:'lumi',name:'Ella',skin:'#f6bf96',hair:'#cc8856',shirt:'#8dc9b0',extra:'<path d="m0-113 5 11 12 1-9 8 2 12-10-6-10 6 2-12-9-8 12-1Z" fill="#ffe07e" stroke="#38434c" stroke-width="2"/>'}};
+for(const [id,v] of Object.entries(variants)){A.cast.push({id,name:v.name,note:'Dein Freund für neue Ideen.',price:0});A.names[id]=v.name;A.bounds[id]=A.bounds[v.base];A.chars.add(id)}
+for(const c of A.cast)c.price=0;
+window.LerndachsPeopleArt={art(id){const v=variants[id];if(!v)return '';let s=A.art(v.base);const palette=v.base==='lumi'?['#f6bf96','#685376','#ffc958']:['#b47b56','#454039',A.C.teal];[v.skin,v.hair,v.shirt].forEach((color,i)=>s=s.split(palette[i]).join(color));return s+v.extra}};
+})();

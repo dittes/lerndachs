@@ -1,18 +1,24 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const A=WorldArt,{C,R,E,P,cast,homes,decor,bounds,chars}=A;
-const art=(id,home)=>LerndachsWorld.petArt(id)||A.art(id,home);
+const art=(id,home)=>window.LerndachsSeason?.art(id)||LerndachsWorld.petArt(id)||LerndachsPeopleArt.art(id)||A.art(id,home);
 const escapeText=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const icons={house:'<path d="m3 11 9-8 9 8v10H3Zm6 10v-8h6v8M7 8V4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>',moon:'<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>',sound:'<path d="m11 4-6 5H2v6h3l6 5Zm4 5q3 3 0 6m3-9q6 6 0 12"/>',friends:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-4a7 7 0 0 1 14 0v4M17 3a4 4 0 0 1 0 8m1 3q4 1 4 7"/>',chair:'<path d="M5 14V8q0-5 7-5t7 5v6M5 12q-4-3-4 2v4h22v-4q0-5-4-2M4 18v4m16-4v4M5 15h14"/>',shop:'<path d="M3 10v12h18V10M2 3h20l1 6q-3 5-6 0-2 5-5 0-3 5-6 0-3 5-5 0Zm7 19v-8h6v8"/>',bag:'<path d="M5 7h14l3 15H2Zm3 0V5a4 4 0 0 1 8 0v2M8 12h.01M16 12h.01m-7 4q3 3 6 0"/>',spark:'<path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>',flip:'<path d="M12 2v20M2 18l6-12v12Zm20 0L16 6v12Z"/>',left:'<path d="m14 5-7 7 7 7m-6-7h12"/>',right:'<path d="m10 5 7 7-7 7m6-7H4"/>',pause:'<path d="M8 5v14m8-14v14" stroke-width="4"/>',play:'<path d="m8 4 12 8-12 8Z"/>'};
+const icons={settings:'<path d="m9 2-1 4-4 1-2 4 3 3-1 4 4 2 4-2 4 2 4-2-1-4 3-3-2-4-4-1-1-4Z"/><circle cx="12" cy="12" r="3"/>',house:'<path d="m3 11 9-8 9 8v10H3Zm6 10v-8h6v8M7 8V4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>',moon:'<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>',sound:'<path d="m11 4-6 5H2v6h3l6 5Zm4 5q3 3 0 6m3-9q6 6 0 12"/>',friends:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-4a7 7 0 0 1 14 0v4M17 3a4 4 0 0 1 0 8m1 3q4 1 4 7"/>',chair:'<path d="M5 14V8q0-5 7-5t7 5v6M5 12q-4-3-4 2v4h22v-4q0-5-4-2M4 18v4m16-4v4M5 15h14"/>',shop:'<path d="M3 10v12h18V10M2 3h20l1 6q-3 5-6 0-2 5-5 0-3 5-6 0-3 5-5 0Zm7 19v-8h6v8"/>',bag:'<path d="M5 7h14l3 15H2Zm3 0V5a4 4 0 0 1 8 0v2M8 12h.01M16 12h.01m-7 4q3 3 6 0"/>',spark:'<path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>',flip:'<path d="M12 2v20M2 18l6-12v12Zm20 0L16 6v12Z"/>',left:'<path d="m14 5-7 7 7 7m-6-7h12"/>',right:'<path d="m10 5 7 7-7 7m6-7H4"/>',pause:'<path d="M8 5v14m8-14v14" stroke-width="4"/>',play:'<path d="m8 4 12 8-12 8Z"/>'};
 function icon(n){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[n]||icons.spark}</svg>`}
 document.querySelectorAll('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon));
 const KEY='lerndachs.world.v3';
 const allItems=[...cast,...decor,...homes];
 const item=id=>allItems.find(i=>i.id===id);
 const uid=()=>crypto.randomUUID();
-function fresh(){return {version:3,balance:0,owned:['garden','milo','lumi',...LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:LerndachsWorld.empty()},stored:{},receipts:[],journey:{grade:null,starterEarned:false,starterUnlocked:false,done:[],active:null,index:0,target:'plant',together:false,turn:1,worldMoves:[],practice:0,badges:[]}}}
+function fresh(){return {version:3,balance:0,owned:['garden','radio',...LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:LerndachsWorld.empty()},stored:{},receipts:[],journey:{grade:null,starterEarned:false,starterUnlocked:false,done:[],active:null,index:0,target:'plant',together:false,turn:1,worldMoves:[],practice:0,badges:[]}}}
 let state=fresh(),storageOK=true;
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===3&&saved.journey&&Number.isSafeInteger(saved.balance)&&saved.balance>=0&&Array.isArray(saved.owned)&&saved.placed&&saved.stored&&Array.isArray(saved.receipts)&&homes.some(h=>h.id===saved.home)){state=saved;state.journey={...fresh().journey,...saved.journey};state.wallpapers??={}}}catch{}
+// Existing friends are preserved. New worlds choose their sole first figure explicitly.
+const allPeople=()=>[...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].filter(o=>chars.has(o.id));
+if(!state.journey.playerUid&&allPeople().length)state.journey.playerUid=allPeople()[0].uid;
+if(!state.radioWelcomed){if(![...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].some(o=>o.id==='radio'))state.placed[state.home].push({uid:uid(),id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true});if(!state.owned.includes('radio'))state.owned.push('radio');state.radioWelcomed=true}
+state.audioSettings??={enabled:true,volume:.35,station:0};
+const objectName=o=>o.characterName||o.petName||item(o.id)?.name||'Objekt';
 let activePanel='',shopTab='decor',furnitureTab='props',sound=false,selected=null,drag=null,pan=null,audio;
 const current=()=>state.placed[state.home]??=(LerndachsWorld.empty(state.home));
 const stored=()=>state.stored[state.home]??=[];
@@ -24,11 +30,11 @@ function transform(o){return `translate(${o.x} ${o.y}) scale(${(o.flip?-1:1)*(o.
 function specialArt(o){let s=art(o.id,state.home);if(o.id==='fridge'&&o.on){s+=`${R(-59,-268,117,246,'#e6edda',10)}${P('M-55-187H55m-110 82H55','none','#8eb5a6',5)}${R(-37,-244,27,46,'#ffd383',5)}${R(12,-228,29,32,'#edb9cf',6)}${E(-13,-141,24,19,C.coral,C.ink,2)}${P('M-12-160v-9','none',C.leaf,3)}${P('M-68-276l-73 27v239l73 13Z','#c5e9db')}${P('M-130-217v40','none',C.deep,6)}`}
  if(o.id==='cabinet'&&o.on)s+=`${R(-130,-126,260,110,C.brown,8)}${R(-116,-110,90,15,C.cream,3)}${R(33,-107,65,38,C.pink,8)}${P('M-139-135l-47 18v107l47 5Z',C.light)}`;
  if(o.id==='fan'&&o.on)s=s.replace('class="fan-spin"','class="fan-spin" style="animation-play-state:paused"');
- if(o.id==='counter'&&o.on)s+=`<g class="water-stream">${P('M126-224v49','none','#84d9ed',7)}${E(121,-174,24,4,'#d3f4f8')}</g>`;
+ if(o.id==='counter'&&o.on)s+=`<g class="water-stream">${P('M63-227v49','none','#84d9ed',7)}${E(73,-175,24,4,'#d3f4f8')}</g>`;
  if(['lamp','pendant'].includes(o.id)&&o.on)s+=E(0,o.id==='lamp'?-55:-25,78,60,'#ffe58738');
  return s;
 }
-function renderObjects(){syncCarried();$('#objects').innerHTML=current().slice().sort((a,b)=>(a.layer??3)-(b.layer??3)||a.y-b.y).map((o,i)=>{const b=bounds[o.id]||[-50,-100,100,110],isChar=chars.has(o.id),isSmall=b[2]<170&&o.id!=='balloon';return `<g class="movable ${selected===o.uid?'selected':''} ${o.layer===0?'sky-object':''}" data-uid="${o.uid}" data-kind="${o.id}" data-on="${!!o.on}" transform="${transform(o)}" tabindex="0" role="button" aria-label="${item(o.id)?.name||'Objekt'}: bewegen, benutzen oder einpacken" style="--idle-delay:${i%7*.37}s"><title>${item(o.id)?.name}</title>${R(b[0]-5,b[1]-5,b[2]+10,b[3]+10,'none',13,C.white,4).replace('<rect','<rect class="selection-outline"')}${isSmall?R(Math.min(-38,b[0]),Math.min(-75,b[1]),Math.max(76,b[2]),Math.max(76,b[3]),'transparent',0,'none'):isChar?R(-61,-229,122,235,'transparent',0,'none'):''}<g class="sprite">${specialArt(o)}</g></g>`}).join('');updateSelection();window.WorldSound?.sync();window.LerndachsCharacters?.sync()}
+function renderObjects(){syncCarried();const markup=current().slice().sort((a,b)=>(a.layer??3)-(b.layer??3)||a.y-b.y).map((o,i)=>{const b=bounds[o.id]||[-50,-100,100,110],isChar=chars.has(o.id),isSmall=b[2]<170&&o.id!=='balloon';return `<g class="movable ${chars.has(o.id)?'person':''} ${selected===o.uid?'selected':''} ${o.layer===0?'sky-object':''}" data-uid="${o.uid}" data-kind="${o.id}" data-on="${!!o.on}" transform="${transform(o)}" tabindex="0" role="button" aria-label="${escapeText(objectName(o))}: bewegen, benutzen oder einpacken" style="--idle-delay:${i%7*.37}s"><title>${escapeText(objectName(o))}</title>${R(b[0]-5,b[1]-5,b[2]+10,b[3]+10,'none',13,C.white,4).replace('<rect','<rect class="selection-outline"')}${isSmall?R(Math.min(-38,b[0]),Math.min(-75,b[1]),Math.max(76,b[2]),Math.max(76,b[3]),'transparent',0,'none'):isChar?R(-61,-229,122,235,'transparent',0,'none'):''}<g class="sprite">${specialArt(o)}</g></g>`});$('#objects').innerHTML=markup.filter((s,i)=>!s.includes('data-kind="tree"')).join('');const trees=$('#tree-layer');if(trees)trees.innerHTML=markup.filter(s=>s.includes('data-kind="tree"')).join('');updateSelection();window.WorldSound?.sync();window.LerndachsCharacters?.sync()}
 function render(){
  $('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]||0);$('.playground').classList.toggle('night',state.night);document.body.classList.toggle('no-motion',state.paused);
  $('#location').textContent=homes.find(h=>h.id===state.home).name;$('#day-label').textContent=state.night?'Geschichten unterm Sternenhimmel.':'Dein Tag. Deine Geschichte.';
@@ -36,7 +42,7 @@ function render(){
  renderObjects();save();panButtons();
 }
 function select(o){selected=o?.uid||null;document.querySelectorAll('.movable.selected').forEach(e=>e.classList.remove('selected'));if(selected)document.querySelector(`[data-uid="${selected}"]`)?.classList.add('selected');updateSelection()}
-function updateSelection(){const o=current().find(o=>o.uid===selected);$('#selection').hidden=!o;if(o)$('#selected-name').textContent=item(o.id)?.name||'Objekt'}
+function updateSelection(){const o=current().find(o=>o.uid===selected);$('#selection').hidden=!o;if(o)$('#selected-name').textContent=objectName(o)}
 function worldPoint(e){return new DOMPoint(e.clientX,e.clientY).matrixTransform($('#world').getScreenCTM().inverse())}
 function bagHit(x,y){const r=$('#bag-button').getBoundingClientRect();return x>=r.left-20&&x<=r.right+20&&y>=r.top-20&&y<=r.bottom+20}
 function effect(o,type='spark'){
@@ -64,10 +70,10 @@ function pack(o){
  if(!o)return;const home=state.home,copy=structuredClone(o),carried=current().filter(x=>x.carrier===o.uid);for(const x of carried)delete x.carrier;
  state.placed[home]=current().filter(x=>x.uid!==o.uid);delete o.carrier;stored().push(o);select(null);renderObjects();save();toast(`${item(o.id)?.name} ist in deiner Tasche.`,()=>{if(!state.stored[home].some(x=>x.uid===copy.uid))return;state.stored[home]=state.stored[home].filter(x=>x.uid!==copy.uid);state.placed[home].push(copy);if(state.home===home)renderObjects();save()});
 }
-function restore(uidToRestore){const o=stored().find(o=>o.uid===uidToRestore);if(!o)return;state.stored[state.home]=stored().filter(x=>x.uid!==uidToRestore);delete o.carrier;current().push(o);renderObjects();save();$('#panel').close();focusObject(o);effect(o);toast(`${item(o.id)?.name} ist wieder da.`)}
+function restore(uidToRestore){if(current().length>=120){toast('Packe erst etwas ein, damit Platz bleibt.');return}const o=stored().find(o=>o.uid===uidToRestore);if(!o)return;state.stored[state.home]=stored().filter(x=>x.uid!==uidToRestore);delete o.carrier;current().push(o);renderObjects();save();$('#panel').close();focusObject(o);effect(o);toast(`${item(o.id)?.name} ist wieder da.`)}
 function focusObject(o){const s=$('#scene-scroll'),scale=$('#world').clientWidth/1600;s.scrollTo({left:Math.max(0,o.x*scale-s.clientWidth/2),behavior:state.paused?'instant':'smooth'});select(o)}
 function carryOrDrop(o){if(chars.has(o.id)||!bounds[o.id]||bounds[o.id][2]>165||['sun','cloud','hanging','balloon'].includes(o.id))return;const c=current().find(c=>chars.has(c.id)&&Math.abs(c.x-o.x)<72&&Math.abs(c.y-91-o.y)<72);if(c){o.carrier=c.uid;o.dx=o.x<c.x?-55:55;o.layer=5;syncCarried();effect(c)}}
-$('#objects').addEventListener('pointerdown',e=>{
+$('#world').addEventListener('pointerdown',e=>{
  const el=e.target.closest('.movable');if(!el||e.button>0)return;e.preventDefault();e.stopPropagation();const o=current().find(o=>o.uid===el.dataset.uid),p=worldPoint(e);delete o.carrier;
  drag={el,o,start:p,ox:o.x,oy:o.y,moved:false,pointer:e.pointerId};select(o);el.classList.add('dragging');el.parentElement.append(el);el.setPointerCapture(e.pointerId);document.body.classList.add('is-dragging');$('#welcome-hint').hidden=true;
 });
@@ -78,16 +84,16 @@ window.addEventListener('pointermove',e=>{
 });
 function finishDrag(e){if(!drag)return;const d=drag;drag=null;document.body.classList.remove('is-dragging');$('#bag-button').classList.remove('drop-ready');d.el.classList.remove('dragging');if(e.type==='pointercancel'){d.o.x=d.ox;d.o.y=d.oy}else if(d.moved&&bagHit(e.clientX,e.clientY)){d.o.x=d.ox;d.o.y=d.oy;pack(d.o);return}else if(d.moved){carryOrDrop(d.o)}else use(d.o);renderObjects();save();if(d.moved)window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:d.o.uid,id:d.o.id}}))}
 window.addEventListener('pointerup',finishDrag);window.addEventListener('pointercancel',finishDrag);
-$('#objects').addEventListener('keydown',e=>{
+$('#world').addEventListener('keydown',e=>{
  const el=e.target.closest('.movable');if(!el)return;const o=current().find(o=>o.uid===el.dataset.uid),delta={ArrowLeft:[-15,0],ArrowRight:[15,0],ArrowUp:[0,-15],ArrowDown:[0,15]}[e.key];select(o);
  if(delta){e.preventDefault();delete o.carrier;o.x=Math.max(40,Math.min(1560,o.x+delta[0]));o.y=Math.max(85,Math.min(864,o.y+delta[1]));carryOrDrop(o);el.setAttribute('transform',transform(o));syncCarried();for(const held of current().filter(x=>x.carrier===o.uid))document.querySelector(`[data-uid="${held.uid}"]`)?.setAttribute('transform',transform(held));save();window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:o.uid,id:o.id}}))}
  if(e.key==='Enter'||e.key===' '){e.preventDefault();use(o)}if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();pack(o)}if(e.key==='Escape')select(null);
 });
-$('#objects').addEventListener('focusin',e=>{const el=e.target.closest('.movable');if(el){const o=current().find(x=>x.uid===el.dataset.uid);select(o);focusObject(o)}});
+$('#world').addEventListener('focusin',e=>{const el=e.target.closest('.movable');if(el){const o=current().find(x=>x.uid===el.dataset.uid);select(o);focusObject(o)}});
 const scene=$('#scene-scroll');
 scene.addEventListener('pointerdown',e=>{if(e.target.closest('.movable')||e.button>0)return;pan={x:e.clientX,scroll:scene.scrollLeft,y:e.clientY,moved:false};scene.setPointerCapture(e.pointerId)});
 scene.addEventListener('pointermove',e=>{if(!pan||drag)return;if(Math.abs(e.clientX-pan.x)>5)pan.moved=true;scene.style.scrollBehavior='auto';scene.scrollLeft=pan.scroll+pan.x-e.clientX});
-scene.addEventListener('pointerup',e=>{if(!pan)return;if(!pan.moved){select(null);const p=worldPoint(e);if(p.y<580){state.wallpapers[state.home]=((state.wallpapers[state.home]||0)+1)%3;$('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]);save()}else effect({x:p.x,y:p.y+90})}pan=null;scene.style.scrollBehavior=''});
+scene.addEventListener('pointerup',e=>{if(!pan)return;if(!pan.moved){select(null);const p=worldPoint(e);if(p.y<580){state.wallpapers[state.home]=((state.wallpapers[state.home]||0)+1)%3;$('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]);renderObjects();save()}else effect({x:p.x,y:p.y+90})}pan=null;scene.style.scrollBehavior=''});
 scene.addEventListener('pointercancel',()=>{pan=null});
 function panButtons(){const s=$('#scene-scroll');$('#pan-left').disabled=s.scrollLeft<4;$('#pan-right').disabled=s.scrollLeft>s.scrollWidth-s.clientWidth-4}
 scene.addEventListener('scroll',panButtons,{passive:true});window.addEventListener('resize',()=>{centerScene();panButtons()});
@@ -101,11 +107,12 @@ function card(i,type='decor',storedObject){const own=state.owned.includes(i.id),
  if(storedObject){action='restore';label='Zurückholen'}else if(activePanel==='shop'){action='buy';label=own&&!i.repeatable?'✓ Schon deins':`${i.price} ✦ · ${own?'Noch eins':'Holen'}`;disabled=own&&!i.repeatable}
  else if(isHouse){action=own?'visit':'store';label=state.home===i.id?'Hier bist du':own?'Besuchen':`${i.price} ✦ · Laden`;disabled=state.home===i.id}
  else if(isChar&&current().some(o=>o.id===i.id)){label='✓ Spielt mit';disabled=true}
- const displayName=storedObject?.petName||current().find(o=>o.id===i.id)?.petName||i.name;
+ const displayName=storedObject?objectName(storedObject):current().find(o=>o.id===i.id)?.petName||i.name;
  const targetButton=activePanel==='shop'&&!disabled?`<button class="target-button" data-action="target" data-id="${i.id}">${state.journey.target===i.id?'✓ Dein Sparziel':'Als Sparziel wählen'}</button>`:'';
  return `<article class="item-card"><div class="item-art">${preview(i,isHouse)}</div><div class="item-body"><h3>${escapeText(displayName)}</h3><p>${i.note||'Bereit für die nächste Geschichte.'}</p><button data-action="${action}" data-id="${storedObject?.uid||i.id}" ${disabled?'disabled':''}>${label}</button>${targetButton}</div></article>`}
 function renderPanel(){const c=$('#panel-content');
- if(activePanel==='shop'){const items=shopTab==='figures'?cast:shopTab==='houses'?homes:shopTab==='pets'?decor.filter(i=>i.kind==='pet'):decor.filter(i=>i.kind==='decor');c.innerHTML=`<div class="tabs" aria-label="Ladenkategorien">${[['decor','Einrichtung'],['pets','Haustiere'],['figures','Figuren'],['houses','Häuser']].map(([id,n])=>`<button data-tab="${id}" aria-pressed="${shopTab===id}">${n}</button>`).join('')}</div><div class="card-grid">${items.map(i=>card(i,shopTab)).join('')}</div><p class="note">Deine Sterne: <strong>${state.balance} ✦</strong> · Möbel ab 20 Sternen, Haustiere ab 300 Sternen. Jede neue Aufgabe bringt 15 Sterne.</p><button class="primary wide" data-action="learn">Sterne mit Aufgaben verdienen →</button>`}
+ if(activePanel==='shop'){const items=shopTab==='figures'?cast:shopTab==='houses'?homes:shopTab==='pets'?decor.filter(i=>i.kind==='pet'):decor.filter(i=>i.kind==='decor');c.innerHTML=`<div class="tabs" aria-label="Ladenkategorien">${[['decor','Einrichtung'],['bundles','Pakete'],['pets','Haustiere'],['figures','Figuren'],['houses','Häuser']].map(([id,n])=>`<button data-tab="${id}" aria-pressed="${shopTab===id}">${n}</button>`).join('')}</div><div class="card-grid">${items.map(i=>card(i,shopTab)).join('')}</div><p class="note">Deine Sterne: <strong>${state.balance} ✦</strong> · Möbel ab 20 Sternen, Haustiere ab 300 Sternen. Jede neue Aufgabe bringt 15 Sterne.</p><button class="primary wide" data-action="learn">Sterne mit Aufgaben verdienen →</button>`}
+ else if(activePanel==='residents'&&window.LerndachsFriends){c.innerHTML='';LerndachsFriends.render(c)}
  else if(activePanel==='residents')c.innerHTML=`<div class="card-grid">${[...cast,...decor.filter(i=>i.kind==='pet')].filter(i=>state.owned.includes(i.id)).map(i=>card(i,'figures')).join('')}</div><p class="note">Tippe auf eine Figur, damit sie mitspielt. Figuren in deiner Tasche kannst du dort zurückholen.</p><button class="text-button" data-action="store">Neue Freunde im Laden →</button>`;
  else if(activePanel==='furniture'){const building=['sofa','bed','table','cabinet','fridge','counter','stool','shelf','rug','window','curtain','easel'];const items=decor.filter(i=>state.owned.includes(i.id)&&(furnitureTab==='furniture'?building.includes(i.id):!building.includes(i.id)));c.innerHTML=`<div class="tabs">${[['props','Kleine Dinge'],['furniture','Möbel & Raum']].map(([id,n])=>`<button data-furniture-tab="${id}" aria-pressed="${furnitureTab===id}">${n}</button>`).join('')}</div><div class="card-grid">${items.map(i=>card(i)).join('')}</div><p class="note">Auch Sonne, Wolken, Fenster und Möbel kannst du verschieben und einpacken.</p>`}
  else if(activePanel==='bag')c.innerHTML=`<p class="note" style="margin:0 0 18px">Zieh Dinge auf die Tasche oder wähle „Einpacken“. Hier kannst du sie jederzeit zurückholen.</p>${stored().length?`<div class="card-grid">${stored().map(o=>card(item(o.id),'decor',o)).join('')}</div>`:'<div class="empty"><strong>Hier ist noch Platz für deine Ideen.</strong>Deine eingepackten Dinge landen hier. Sie bleiben gespeichert.</div>'}`;
@@ -113,6 +120,7 @@ function renderPanel(){const c=$('#panel-content');
  else if(activePanel==='rewards')c.innerHTML=`<div class="reward-art">✦</div><div class="dialog-copy"><p><strong>Aus deinen Ideen wird ein Zuhause.</strong></p><p>Eine neue gelöste Aufgabe bringt 15 Sterne. Mit Sternen holst du Möbel, Pflanzen und tierische Freunde. Tipps und neue Versuche sind immer erlaubt.</p><p>Dein Guthaben: <strong>${state.balance} Sterne</strong></p></div><button class="primary wide" data-action="learn">Nächste Aufgabe spielen →</button><p class="note">Keine Käufe mit Echtgeld. Keine Werbevideos. Mit einer kleinen Sonnen-Überraschung.</p>`;
  else c.innerHTML=`<div class="info-list"><p><strong>Alles ist zum Anfassen da.</strong><br>Figuren, Möbel, Pflanzen, Lampen, Sonne und Wolken: Tippe etwas an oder zieh es an einen neuen Platz.</p><p><strong>Einpacken & zurückholen.</strong><br>Zieh ein Objekt auf die Tasche oder tippe nach dem Auswählen auf das Taschen-Symbol. Die Dinge bleiben erhalten.</p><p><strong>Kleine Überraschungen.</strong><br>Öffne den Kühlschrank, dreh den Wasserhahn auf, lass es regnen, spiele Gitarre oder setze eine Figur aufs Sofa. Kleine Dinge kannst du einer Figur in die Hand ziehen.</p><p><strong>Deine Welt, dein Tempo.</strong><br>Mit den Pfeilen oder durch Ziehen am Hintergrund schaust du dich um. Tippe auf eine Wand, um ihre Farbe zu ändern. Oben kannst du Animationen und Töne umschalten.</p><p><strong>Tastatur.</strong><br>Tab wählt aus, Pfeiltasten bewegen, Enter benutzt, Entf packt ein. Escape hebt die Auswahl auf.</p></div><div class="settings-actions"><button data-action="tidy">Vorhandene Dinge aufräumen</button><button data-action="fullscreen">Vollbild umschalten</button><button data-install-app>App installieren</button></div><p class="note">${storageOK?'Lokal in diesem Browser gespeichert.':'Lokale Speicherung ist nicht verfügbar.'} Lerndachs ist ein eigenständiger Entwurf mit neu erstellten Grafiken und Klängen. Keine Verbindung zu Toca Boca oder Duolingo. Arbeitstitel.</p>`;
 }
+const originalRenderPanel=renderPanel;renderPanel=function(){originalRenderPanel();const c=$('#panel-content');if(activePanel==='shop'&&shopTab==='bundles')window.LerndachsBundles?.render(c);if(activePanel==='shop'&&shopTab==='figures')window.LerndachsFriends?.render(c)};
 $('#panel-content').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(b.dataset.tab){shopTab=b.dataset.tab;renderPanel();return}if(b.dataset.furnitureTab){furnitureTab=b.dataset.furnitureTab;renderPanel();return}
  if(action==='buy'){const i=item(id);if(!state.journey.starterUnlocked)return;if(!homes.some(h=>h.id===id)&&current().length>=120){toast('Dein Raum ist voll. Packe zuerst etwas ein.');return}const r=WunderEconomy.purchase(state,i);if(!r.purchased){if(r.reason==='insufficient')toast(`Dir fehlen noch ${i.price-state.balance} Sterne. Mit der nächsten Aufgabe kommst du näher!`);return}save();if(!homes.some(h=>h.id===id))place(id,true);else renderPanel();chime();toast(`${i.name} gehört jetzt zu deiner Welt!`)}
  if(action==='target'){state.journey.target=id;save();renderPanel();toast('Sparziel gesetzt. Jede Aufgabe bringt dich näher!')}
@@ -143,7 +151,7 @@ function grantStarter(){
  if(state.journey.starterUnlocked||!state.journey.starterEarned)return false;
  state.journey.starterUnlocked=true;
  for(const o of LerndachsWorld.starterObjects('garden')){if(!state.owned.includes(o.id))state.owned.push(o.id);state.placed.garden.push(o)}
- state.home='garden';render();centerScene();effect({x:800,y:500});return true;
+ state.home='garden';render();centerScene();effect({x:800,y:500});window.dispatchEvent(new Event('learning-celebration'));return true;
 }
 function showPet(o){
  selected=o.uid;const i=item(o.id);$('#panel-title').textContent=o.petName||i.name;$('#panel-kicker').textContent='DEIN TIERISCHER FREUND';activePanel='pet';
@@ -178,3 +186,24 @@ function sunClick(){
 }
 
 window.addEventListener('request-world-help',()=>showPanel('help'));
+
+LerndachsJourney.people=()=>allPeople().map(o=>({...o,name:objectName(o),player:o.uid===state.journey.playerUid}));
+LerndachsJourney.player=()=>allPeople().find(o=>o.uid===state.journey.playerUid);
+LerndachsJourney.person=(id,name,mode='add',personUid)=>{
+ if(!chars.has(id)||typeof name!=='string'||!name.trim())return false;
+ let o=mode==='initial'?null:allPeople().find(o=>o.uid===(personUid||state.journey.playerUid));
+ if(mode==='add')o=null;
+ if(!o){if(current().length>=120||allPeople().length>=20){toast('Deine Welt ist schon gut besucht.');return false}o={uid:uid(),id,x:700+allPeople().length%5*105,y:790,s:1,layer:4};current().push(o)}
+ o.id=id;o.characterName=name.trim().slice(0,24);if(mode==='initial'||mode==='change')state.journey.playerUid=o.uid;
+ if(!state.owned.includes(id))state.owned.push(id);renderObjects();save();window.dispatchEvent(new Event('character-celebrate'));return true;
+};
+LerndachsJourney.showPerson=personUid=>{const o=allPeople().find(o=>o.uid===personUid);if(!o)return;for(const map of [state.placed,state.stored])for(const [home,list] of Object.entries(map))map[home]=list.filter(x=>x.uid!==personUid);delete o.carrier;current().push(o);renderObjects();save();$('#panel').close();focusObject(o)};
+LerndachsJourney.getAudio=()=>({...state.audioSettings});
+LerndachsJourney.setAudio=values=>{Object.assign(state.audioSettings,values);save()};
+LerndachsJourney.purchaseBundle=bundle=>{
+ if(!state.journey.starterUnlocked||!LerndachsBundleData.includes(bundle))return {ok:false,message:'Dein Einzugspaket wartet zuerst.'};
+ if(state.balance<bundle.price)return {ok:false,message:`Dir fehlen noch ${bundle.price-state.balance} Sterne.`};
+ if(stored().length+bundle.items.length>200)return {ok:false,message:'Hole zuerst einige Dinge aus deiner Tasche.'};
+ state.balance-=bundle.price;for(const id of bundle.items){stored().push({uid:uid(),id,x:800,y:750,s:1,layer:A.layer(id)});if(!state.owned.includes(id))state.owned.push(id)}
+ save();window.dispatchEvent(new Event('learning-celebration'));WorldSound.effect('reward');return {ok:true};
+};
