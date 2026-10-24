@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Lerndachs",
+  "short_name": "Lerndachs",
+  "description": "Deine Lernspielwelt mit Klassenauswahl, erspielbaren Möbeln, Haustieren und eigenem Stundenplan.",
+  "lang": "de-DE",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff4d9",
+  "theme_color": "#4fbaa8",
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
