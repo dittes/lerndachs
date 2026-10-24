@@ -176,3 +176,5 @@ function sunClick(){
  if(state.journey.sunClicks%7===0){const r=credit({receiptId:'sun-bonus-'+state.journey.sunClicks/7,stars:250});if(r.credited){toast('Sonnengeheimnis! +250 Sterne für deine Welt.');window.dispatchEvent(new Event('learning-celebration'))}}
  else save();
 }
+
+window.addEventListener('request-world-help',()=>showPanel('help'));
