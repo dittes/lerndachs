@@ -1,5 +1,5 @@
 /* Generated offline shell. Updates activate only when the player chooses. */
-const CACHE='lerndachs-shell-f29d9c60e31affc8';
+const CACHE='lerndachs-shell-2171f245126bb735';
 const ASSETS=["./index.html","./impressum.html","./app.js","./style.css","./immersive.css","./learning.css","./journey.css","./favicon.svg","./manifest.webmanifest","./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png","./adults.css","./social.css","./vendor/pdf-lib.min.js"];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('lerndachs-shell-')&&key!==CACHE).map(key=>caches.delete(key)))),self.clients.claim()])));
