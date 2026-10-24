@@ -25,7 +25,7 @@ function sync(){
 }
 function gesture(el,type,delay=0){
  if(!el||blocked())return;
- const uid=el.dataset.uid;
+ if(type==='wave'&&!el.querySelector('.character-arm-right'))type='hop';const uid=el.dataset.uid;
  // Objects held at a fixed hand position should not be left floating during a hop.
  const snapshot=window.Lernwelt?.snapshot();
  const objects=snapshot?.placed?Object.values(snapshot.placed).flat():[];

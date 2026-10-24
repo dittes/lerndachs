@@ -17,12 +17,12 @@ try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===3&&sav
 const allPeople=()=>[...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].filter(o=>chars.has(o.id));
 if(!state.journey.playerUid&&allPeople().length)state.journey.playerUid=allPeople()[0].uid;
 if(!state.radioWelcomed){if(![...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].some(o=>o.id==='radio'))state.placed[state.home].push({uid:uid(),id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true});if(!state.owned.includes('radio'))state.owned.push('radio');state.radioWelcomed=true}
-state.audioSettings??={enabled:true,volume:.35,station:0};
+state.audioSettings??={enabled:true,volume:.6,station:0};if(!state.audioSettings.gainVersion){if(state.audioSettings.volume===.35)state.audioSettings.volume=.6;state.audioSettings.gainVersion=1}
 const objectName=o=>o.characterName||o.petName||item(o.id)?.name||'Objekt';
 let activePanel='',shopTab='decor',furnitureTab='props',sound=false,selected=null,drag=null,pan=null,audio;
 const current=()=>state.placed[state.home]??=(LerndachsWorld.empty(state.home));
 const stored=()=>state.stored[state.home]??=[];
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));$('#save-status').textContent='Lokal gespeichert'}catch{storageOK=false;$('#save-status').textContent='Speichern nicht verfügbar'}$('#balance').textContent=state.balance;$('#bag-count').textContent=stored().length;window.dispatchEvent(new Event('world-saved'))}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{storageOK=false}$('#balance').textContent=state.balance;$('#bag-count').textContent=stored().length;window.dispatchEvent(new Event('world-saved'))}
 let toastTimer;
 function toast(message,undo){const t=$('#toast');t.textContent=message;if(undo){const b=document.createElement('button');b.textContent='Rückgängig';b.className='toast-undo';b.onclick=()=>{undo();t.classList.remove('visible')};t.append(b)}t.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('visible'),undo?6500:2800)}
 function syncCarried(){for(const o of current()){if(!o.carrier)continue;const c=current().find(c=>c.uid===o.carrier);if(!c){delete o.carrier;continue}o.x=c.x+(o.dx||55);o.y=c.y-91;o.layer=5}}

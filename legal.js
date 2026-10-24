@@ -1,0 +1,2 @@
+/* Direct legal access is also available before onboarding or inside a modal. */
+(()=>{function attach(){for(const dialog of document.querySelectorAll('dialog')){if(dialog.querySelector(':scope > .dialog-legal'))continue;const footer=document.createElement('footer');footer.className='dialog-legal';const link=document.createElement('a');link.href='impressum.html';link.target='_blank';link.rel='noopener';link.textContent='Impressum';footer.append(link);dialog.append(footer)}}new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
