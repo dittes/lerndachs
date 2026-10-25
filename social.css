@@ -8,3 +8,17 @@
 @media(prefers-reduced-motion:reduce){#adventure-button.has-task .badger-icon{animation:none}}.no-motion #adventure-button.has-task .badger-icon{animation:none}
 
 .legal-link{position:absolute;left:22px;bottom:0;min-height:32px;display:inline-flex;align-items:center;padding:2px 8px;color:#38434c;font-size:11px;font-weight:700;text-underline-offset:3px;z-index:6}.legal-link:focus-visible{outline:3px solid #38434c;border-radius:8px}.dialog-legal{display:block;border:0;margin:18px 0 0;padding:6px 0 0;text-align:center;font-size:12px}.dialog-legal a{color:#38434c;min-height:44px;padding:12px;display:inline-flex;align-items:center;text-underline-offset:3px}@media(max-width:600px){.toolbox{bottom:42px!important}.bag-button{bottom:42px!important}#adventure-button{bottom:139px}#radio-dock{bottom:140px}.legal-link{left:12px;min-height:34px}}
+
+/* Keep the floor available on phones; the compact legal line uses the last row. */
+.legal-link{min-height:18px;font-size:10px;padding:0 4px;bottom:0}.dialog-legal{margin:6px 0 0;padding:0}.dialog-legal a{min-height:26px;padding:2px 6px;font-size:11px}
+@media(max-width:600px){
+ .toolbox{bottom:calc(18px + env(safe-area-inset-bottom,0px))!important}.bag-button{bottom:calc(18px + env(safe-area-inset-bottom,0px))!important}
+ .legal-link{left:12px;bottom:env(safe-area-inset-bottom,0px);min-height:18px}
+ #adventure-button{bottom:calc(102px + env(safe-area-inset-bottom,0px))}
+ #learning-dialog:has(.class-intro){width:calc(100% - 16px);max-height:calc(100dvh - 16px);padding:18px 16px 10px;border-radius:23px}
+ .class-intro{padding:0}.class-intro .guide-face{width:42px;height:42px;margin:0 auto 7px}.class-intro>.learn-eyebrow{display:none}.class-intro h2{font-size:24px;line-height:1.12;margin:0 0 6px}.class-intro>p:not(.learn-eyebrow){font-size:12px;line-height:1.4;margin:6px auto 10px}
+ .class-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0 12px}.class-grid button{min-height:70px;padding:8px;gap:6px;flex-direction:row;justify-content:center}.class-grid button:first-child{display:flex;min-height:52px;justify-content:center}.class-grid button small{display:none}.class-grid button>span{width:34px;height:34px;font-size:23px;border-radius:10px}.class-grid button strong{font-size:13px}
+ .class-intro .learning-footnote{font-size:10px!important;line-height:1.35!important;margin:9px 0 0!important}.class-intro #confirm-grade{min-height:48px}
+ #character-dialog{padding:18px 14px 8px;max-height:calc(100dvh - 16px)}#character-dialog .dialog-top{margin-bottom:12px}#character-dialog .dialog-top h2{font-size:24px}#character-dialog .eyebrow{font-size:8px;letter-spacing:.7px}.people-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.people-grid>button{min-height:103px;padding:6px 3px;gap:5px}.people-grid svg{height:71px}.people-grid strong{font-size:11px}.pet-name-label{margin:12px 0}.pet-name-label input{min-height:44px}#person-form .note{font-size:10px;line-height:1.4;margin:9px 0}#character-error:empty{display:none}
+}
+@media(max-width:600px) and (max-height:650px){.class-intro .guide-face{display:none}.class-intro .learning-footnote{display:none}.class-intro h2{font-size:22px}.class-grid button{min-height:64px}.people-grid>button{min-height:86px}.people-grid svg{height:58px}#character-dialog .dialog-top{margin-bottom:8px}#character-dialog .eyebrow{display:none}#character-dialog .pet-name-label{margin:8px 0}}
