@@ -26,7 +26,7 @@ const E=(x,y,rx,ry,c,stroke='none',sw=3)=>`<ellipse cx="${x}" cy="${y}" rx="${rx
 const P=(d,c='none',stroke=C.ink,sw=3)=>`<path d="${d}" fill="${c}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const G=(s,cls='',attr='')=>`<g class="${cls}" ${attr}>${s}</g>`;
 const shadow=(rx=38)=>E(0,4,rx,8,'#38434c20');
-function face(y=-150,skin=C.cream){return `${G(`${E(-18,y,11,14,C.white,C.ink,2)}${E(18,y,11,14,C.white,C.ink,2)}${G(`${E(-15,y+2,5,8,C.ink)}${E(21,y+2,5,8,C.ink)}${E(-17,y-1,1.8,2.5,C.white)}${E(19,y-1,1.8,2.5,C.white)}`,'character-pupils')}`,'eyes')}${E(-32,y+16,10,5,'#ef967e')}${E(32,y+16,10,5,'#ef967e')}${P(`M-9 ${y+23}q9 9 18 0`,skin)}${P(`M-2 ${y+8}q4 4 7 0`,'none',C.ink,2)}`}
+function face(y=-150,skin=C.cream){return `${G(`${E(-18,y,11,14,C.white,C.ink,2)}${E(18,y,11,14,C.white,C.ink,2)}${G(`${E(-18,y,5,8,C.ink)}${E(18,y,5,8,C.ink)}${E(-20,y-3,1.8,2.5,C.white)}${E(16,y-3,1.8,2.5,C.white)}`,'character-pupils')}`,'eyes')}${E(-32,y+16,10,5,'#ef967e')}${E(32,y+16,10,5,'#ef967e')}${P(`M-9 ${y+23}q9 9 18 0`,skin)}${P(`M-2 ${y+8}q4 4 7 0`,'none',C.ink,2)}`}
 function human(id){const lumi=id==='lumi',skin=lumi?'#f6bf96':'#b47b56',hair=lumi?'#685376':'#454039',shirt=lumi?'#ffc958':C.teal;
 return shadow(51)+G(G(`${lumi?P('M-59-130q-10-89 60-89t62 89v35H-59Z',hair):''}${P('M-20-52v42m40-42v42','none',lumi?'#b0a1ca':'#3e777d',20)}${R(-36,-17,31,18,lumi?C.cream:C.coral,8)}${R(5,-17,31,18,lumi?C.cream:C.coral,8)}${G(P('M-36-95l-17 32','none',skin,17)+E(-53,-63,9,10,skin),'character-arm character-arm-left')}${G(P('M37-95l16 32','none',skin,17)+E(53,-63,9,10,skin),'character-arm character-arm-right')}${R(-41,-116,82,69,shirt,23)}${lumi?P('M-36-80h72m-64 16h56','none','#fff0ab',5):`${P('M-28-115v25h56v-25m-56 25v40h56v-40','#408e9a')}${R(-13,-83,26,23,'#5da9b2',6)}${E(-22,-94,3,3,C.yellow)}${E(22,-94,3,3,C.yellow)}`}${G(`${E(-50,-145,10,15,skin,C.ink)}${E(50,-145,10,15,skin,C.ink)}${R(-51,-199,102,91,skin,39)}${lumi?P('M-53-166q-5-46 22-42 13-22 48-11 36 3 39 43-28-1-45-29-14 29-64 39Z',hair):`${P('M-52-171q-3-38 30-39 25-30 63 0l14 43-16-18-17 5-14-16-20 18-17-8-23 15Z',hair)}${[-39,-18,5,26,43].map((x,i)=>E(x,-196-(i%2)*11,17,17,hair,C.ink,2)).join('')}`}${face(-151,skin)}${lumi?`${P('M28-205q-19-18-7-23 13-3 16 13 16-15 23-6 4 12-18 16Z',C.coral)}${E(37,-211,6,6,C.yellow,C.ink,2)}`:''}`,'character-head')}`,'character-breathe'),'character-action')}
 function fox(){return shadow(49)+G(`${P('M35-51q65 2 47-56-25 30-46 31','#e59658')}${P('M75-88q11 8 10 20l-20-2Z',C.cream)}${P('M-21-50v40m42-40v40','none',C.brown,18)}${R(-35,-15,28,16,'#4f6a79',7)}${R(7,-15,28,16,'#4f6a79',7)}${P('M-34-93l-17 33m86-33 17 33','none','#e59658',16)}${R(-40,-115,80,70,C.teal,22)}${P('M0-109v62')}${R(-27,-81,17,18,'#7cd3bd',4)}${R(10,-81,17,18,'#7cd3bd',4)}${P('M-47-160l-8-70 43 42m23 0 44-42-8 70','#e59658')}${P('M-41-180l-4-30 18 21m67 9 4-30-18 21','#f1b7a2')}${R(-52,-196,104,89,'#e59658',37)}${P('M-49-154q23-15 49 12 26-27 49-12-7 45-49 45t-49-45Z',C.cream,'none')}${face(-151)}${E(0,-135,6,4,C.ink)}`,'character-breathe')}
@@ -3320,7 +3320,7 @@ function chooseGrade(){
 function starter(){
  if(progress.grade===null){chooseGrade();return}if(!J.player()){cleanup();dialog.close();LerndachsFriends.open('initial',starter);return}if(progress.starterUnlocked){open();return}if(progress.starterEarned){packScreen();return}
  cleanup();mode='intro';correct=false;const q=LerndachsIntro[progress.grade];
- content.innerHTML=`<div class="intro-task"><p class="learn-eyebrow">${grades[progress.grade].label.toUpperCase()} · DEIN ERSTES ABENTEUER</p><h2 id="learn-title">Ein Zuhause für deine Ideen.</h2><p>Noch ist dein Haus leer. Löse diese leichte Aufgabe und du bekommst ein Paket mit Sofa, Tisch, Pflanze und weiteren Dingen zum Einziehen.</p><div class="moving-boxes">${q[3]}</div><h3>${q[0]}</h3><button id="read-intro" class="read-button">♫ Vorlesen</button><div class="answer-grid">${q[1].map((a,i)=>`<button data-intro-answer="${i}"><b>${String.fromCharCode(65+i)}</b>${a}</button>`).join('')}</div><div id="intro-feedback" role="status">Du darfst ausprobieren. Es gibt keinen Zeitdruck.</div><div class="starter-preview">${['sofa','table','plant'].map(id=>`<div>${J.preview(J.catalogue.find(i=>i.id===id))}<span>${WorldArt.names[id]}</span></div>`).join('')}<span class="starter-more">+ 9 weitere Dinge</span></div></div>`;
+ content.innerHTML=`<div class="intro-task"><h2 id="learn-title">Dein erstes Rätsel</h2><p class="task-description">${escape(q[0])}</p><div class="moving-boxes">${q[3]}</div><button id="read-intro" class="task-icon" aria-label="Aufgabe vorlesen" title="Vorlesen">${icon('sound')}</button><div class="answer-grid">${q[1].map((a,i)=>`<button data-intro-answer="${i}">${escape(a)}</button>`).join('')}</div><div id="intro-feedback" role="status"></div></div>`;
  document.querySelector('#learn-close').hidden=false;reveal();
 }
 function packScreen(){
@@ -3347,14 +3347,15 @@ function seek(){
  document.querySelector('#quest-stop').onclick=()=>{progress.active=null;persist();resetStrip()};
 }
 function prepareMission(q){if(q[7].goal==='carry'&&J.player())J.showPerson(J.player().uid);const need=({carry:[J.player()?.id,'tea'],water:['plant','watering'],left:['table','stool'],night:['sun']})[q[7].goal]||[];for(const id of need)J.bring(id);J.prepare(q[7].goal);Lernwelt.focus(q[0])}
-function commonQuestion(q){const meta=q[7],p=active(),bounds=WorldArt.bounds[q[0]];return `<div class="question-heading"><span class="learn-eyebrow">${p.title} · ${grades[progress.grade].label}</span><span class="question-reward">✦ +${finished(q)?0:15}</span></div><div class="question-art ${p.color}"><svg viewBox="${bounds.join(' ')}" aria-hidden="true">${J.art(q[0])}</svg><span>${escape(q[6])}</span></div><p class="task-skill">${escape(meta.skill)}</p>${progress.together?`<p class="turn-label">Spieler ${progress.turn} spielt · Spieler ${progress.turn===1?2:1} hilft und erklärt.</p>`:''}<h2 id="learn-title">${escape(q[7].goal==='carry'?q[2].replaceAll('Milo',J.player()?.characterName||WorldArt.names[J.player()?.id]||'deine Figur'):q[2])}</h2><div class="task-tools"><button id="read-question" class="read-button">♫ Vorlesen</button><button id="task-hint" class="read-button">✦ Kleiner Tipp</button>${meta.audio?'<button id="play-sample" class="sample-button">▶ Hörprobe</button>':''}</div>${meta.audio?'<p class="audio-note">Die Hörprobe schaltet den Ton ein. Höre beliebig oft oder wähle „Später“.</p>':''}<div id="task-hint-text" class="task-hint" hidden>${escape(meta.hint)}</div>`}
-function footer(){return '<div id="answer-feedback" role="status" aria-live="polite">Du hast Zeit. Probiere es aus!</div><div class="question-actions"><button id="question-back">← Zurück zur Welt</button><button id="skip-question">Später →</button><button id="next-question" hidden>Weiter entdecken →</button></div>'}
+function taskText(q,text){return q[7].goal==='carry'?text.replaceAll('Milo',J.player()?.characterName||WorldArt.names[J.player()?.id]||'deine Figur'):text}
+function commonQuestion(q){const meta=q[7],visual=q[6].length<=32&&!/[a-zäöüß]/.test(q[6]);return `<div class="task-copy"><h2 id="learn-title">${escape(taskText(q,q[1]))}</h2><p class="task-description">${escape(taskText(q,q[2]))}</p></div><div class="task-tools"><button id="read-question" class="task-icon" aria-label="Aufgabe vorlesen" title="Vorlesen">${icon('sound')}</button><button id="task-hint" class="task-icon" aria-label="Tipp anzeigen" title="Tipp anzeigen" aria-expanded="false">💡</button>${meta.audio?'<button id="play-sample" class="sample-button">▶ Anhören</button>':''}</div>${visual&&meta.type==='choice'?`<div class="task-visual" aria-hidden="true">${escape(q[6])}</div>`:''}<div id="task-hint-text" class="task-hint" hidden>${escape(meta.hint)}</div>`}
+function footer(){return '<div id="answer-feedback" role="status" aria-live="polite"></div><div class="question-actions"><button id="question-back">← Zur Welt</button><button id="skip-question">Später</button><button id="next-question" hidden>Weiter →</button></div>'}
 function question(){
  const q=currentTask();if(!q)return;document.querySelector('#panel').close();cleanup();mode='question';correct=false;worldAttemptDone=false;window.LerndachsEvidence?.start(q,progress.active);document.querySelector('#learn-close').hidden=false;
  let interaction='';
- if(q[7].type==='world')interaction='<div class="world-task-actions"><button id="enter-world-task" class="journey-primary">In meiner Welt ausprobieren →</button><p>Bewege die Dinge mit Maus oder Finger. Mit Tab und Pfeiltasten kannst du sie auch per Tastatur bewegen.</p></div>';
- else if(q[7].type==='garden'){gardenCount=0;interaction='<div class="garden-game"><p id="garden-order"></p><div id="garden-bed" aria-label="Dein bepflanztes Beet"></div><div class="garden-controls"><button id="garden-remove" aria-label="Einen Samen herausnehmen">−</button><span id="garden-count" aria-live="polite">0 Samen</span><button id="garden-add" aria-label="Einen Samen pflanzen">+ Samen</button></div><button id="check-garden" class="journey-primary">Mein Beet prüfen →</button></div>'}
- else if(q[7].type==='memory')interaction='<div class="memory-game"><p id="memory-rule"></p><div id="memory-grid"></div><p id="memory-count" aria-live="polite"></p></div>';
+ if(q[7].type==='world')interaction='<div class="world-task-actions"><button id="enter-world-task" class="journey-primary">In meiner Welt ausprobieren →</button></div>';
+ else if(q[7].type==='garden'){gardenCount=0;interaction='<div class="garden-game"><p id="garden-order" hidden></p><div id="garden-bed" aria-label="Dein bepflanztes Beet"></div><div class="garden-controls"><button id="garden-remove" aria-label="Einen Samen herausnehmen">−</button><span id="garden-count" aria-live="polite">0 Samen</span><button id="garden-add" aria-label="Einen Samen pflanzen">+ Samen</button></div><button id="check-garden" class="journey-primary">Mein Beet prüfen →</button></div>'}
+ else if(q[7].type==='memory')interaction='<div class="memory-game"><p id="memory-rule" hidden></p><div id="memory-grid"></div><p id="memory-count" aria-live="polite"></p></div>';
  else interaction=`<div class="answer-grid">${q[3].map((a,i)=>`<button data-answer="${i}"><b>${String.fromCharCode(65+i)}</b>${escape(a)}</button>`).join('')}</div>`;
  content.innerHTML=commonQuestion(q)+interaction+footer();
  if(q[7].type==='garden')renderGarden();if(q[7].type==='memory')startMemory();
@@ -3362,22 +3363,22 @@ function question(){
 }
 function success(q){
  if(correct)return;correct=true;stopSample();window.LerndachsEvidence?.finish(q);window.dispatchEvent(new Event('learning-celebration'));const already=finished(q);J.reward(taskKey(q));if(!already)window.dispatchEvent(new Event('character-celebrate'));
- const feedback=document.querySelector('#answer-feedback');feedback.classList.add('correct-feedback');feedback.textContent='Geschafft! '+q[5]+(already?'':' +15 Sterne für deine Welt.');
+ const feedback=document.querySelector('#answer-feedback');feedback.classList.add('correct-feedback');feedback.textContent=already?'Geschafft!':'Geschafft! +15 Sterne';
  document.querySelector('#next-question').hidden=false;document.querySelector('#skip-question').hidden=true;content.querySelectorAll('[data-answer],#check-garden,#enter-world-task').forEach(b=>b.disabled=true);WorldSound.effect('reward');
  for(const [n,name] of [[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']])if(progress.done.length>=n&&!progress.badges.includes(name))progress.badges.push(name);persist();window.dispatchEvent(new CustomEvent('learning-success',{detail:{subject:active()?.subject||'math'}}));
 }
-function answer(i){if(correct)return;const q=currentTask(),button=content.querySelector(`[data-answer="${i}"]`);if(i!==q[4]){window.LerndachsEvidence?.mistake();button.classList.add('try-again');button.disabled=true;document.querySelector('#answer-feedback').textContent='Noch nicht ganz. '+q[7].hint+' Probiere es noch einmal.';WorldSound.effect('tea');return}button.classList.add('is-correct');success(q)}
+function answer(i){if(correct)return;const q=currentTask(),button=content.querySelector(`[data-answer="${i}"]`);if(i!==q[4]){window.LerndachsEvidence?.mistake();button.classList.add('try-again');button.disabled=true;document.querySelector('#answer-feedback').textContent='Versuch es noch einmal.';WorldSound.effect('tea');return}button.classList.add('is-correct');success(q)}
 function gardenTarget(){return [3,5,8,12,18][progress.grade]}
 function renderGarden(){
  const orders=['Pflanze 3 Samen.','Pflanze 5 Samen.','Pflanze zuerst 5 Samen und dann noch 3.','Lege 3 Reihen mit je 4 Samen.','Lege 4 Reihen mit je 4 Samen und dann noch 2 Samen.'];
- document.querySelector('#garden-order').textContent=orders[progress.grade];
+ document.querySelector('#garden-order').textContent=orders[progress.grade];document.querySelector('.task-description').textContent=orders[progress.grade];
  document.querySelector('#garden-bed').innerHTML=Array.from({length:Math.max(4,gardenCount)},(_,i)=>`<span class="${i<gardenCount?'planted':''}">${i<gardenCount?'🌱':'·'}</span>`).join('');document.querySelector('#garden-count').textContent=gardenCount+' Samen';document.querySelector('#garden-remove').disabled=gardenCount===0;
 }
 function startMemory(){
  const iconPairs=[['🐱','🐱'],['☀','☀'],['🌳','🌳']],wordPairs=[['🐱','Katze'],['☀','Sonne'],['🌳','Baum'],['☕','Tasse']];
  const pairs=progress.grade===0?iconPairs:progress.grade===1?wordPairs.slice(0,3):progress.grade===2?wordPairs:progress.grade===3?[['schnell','flink'],['leise','still'],['groß','riesig'],['klein','winzig']]:[['hell','dunkel'],['warm','kalt'],['laut','leise'],['groß','klein']];
  memoryCards=pairs.flatMap((pair,g)=>pair.map(text=>({text,group:g,matched:false,open:false}))).sort(()=>Math.random()-.5);memoryOpen=[];memoryBusy=false;
- document.querySelector('#memory-rule').textContent=progress.grade===0?'Finde gleiche Bilder.':progress.grade<3?'Finde Bild und passendes Wort.':progress.grade===3?'Finde Wörter mit ähnlicher Bedeutung.':'Finde Wörter mit gegenteiliger Bedeutung.';renderMemory();
+ document.querySelector('#memory-rule').textContent=progress.grade===0?'Finde gleiche Bilder.':progress.grade<3?'Finde Bild und passendes Wort.':progress.grade===3?'Finde Wörter mit ähnlicher Bedeutung.':'Finde Wörter mit gegenteiliger Bedeutung.';document.querySelector('.task-description').textContent=document.querySelector('#memory-rule').textContent;renderMemory();
 }
 function renderMemory(){document.querySelector('#memory-grid').innerHTML=memoryCards.map((c,i)=>`<button data-memory="${i}" class="memory-card ${c.open||c.matched?'face-up':''} ${c.matched?'matched':''}" aria-label="${c.open||c.matched?escape(c.text):'Verdeckte Karte '+(i+1)}" ${c.matched?'disabled':''}>${c.open||c.matched?escape(c.text):'?'}</button>`).join('');document.querySelector('#memory-count').textContent=memoryCards.filter(c=>c.matched).length/2+' / '+memoryCards.length/2+' Paare'}
 function memoryFlip(index){
@@ -3409,7 +3410,7 @@ content.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.grade!==undefined){pendingGrade=Number(b.dataset.grade);content.querySelectorAll('[data-grade]').forEach(btn=>btn.setAttribute('aria-pressed',Number(btn.dataset.grade)===pendingGrade));document.querySelector('#confirm-grade').disabled=false}
  else if(b.id==='confirm-grade'){if(pendingGrade===null)return;if(progress.grade!==pendingGrade){progress.active=null;progress.index=0;resetStrip()}progress.grade=pendingGrade;persist();document.querySelector('#learn-close').hidden=false;close();if(!progress.starterUnlocked)starter()}
- else if(b.dataset.introAnswer!==undefined){if(correct)return;const q=LerndachsIntro[progress.grade];if(Number(b.dataset.introAnswer)===q[2]){correct=true;window.dispatchEvent(new Event('learning-celebration'));progress.starterEarned=true;persist();WorldSound.effect('reward');packScreen()}else{b.disabled=true;b.classList.add('try-again');document.querySelector('#intro-feedback').textContent='Noch nicht ganz. Schau dir die Kisten oder die Zahlen in Ruhe an und versuche es erneut.'}}
+ else if(b.dataset.introAnswer!==undefined){if(correct)return;const q=LerndachsIntro[progress.grade];if(Number(b.dataset.introAnswer)===q[2]){correct=true;window.dispatchEvent(new Event('learning-celebration'));progress.starterEarned=true;persist();WorldSound.effect('reward');packScreen()}else{b.disabled=true;b.classList.add('try-again');document.querySelector('#intro-feedback').textContent='Versuch es noch einmal.'}}
  else if(b.id==='claim-starter'){if(J.grantStarter()){close();resetStrip();toast('12 Dinge ausgepackt. Dein Zuhause wächst jetzt mit deinen Ideen!')}}
  else if(b.dataset.path)begin(b.dataset.path);
  else if(b.dataset.answer!==undefined)answer(Number(b.dataset.answer));
@@ -3536,61 +3537,28 @@ window.LerndachsPWA={install,get registration(){return registration}};
 })();
 
 ;
-/* Ephemeral gestures live inside the sprite, never in saved world coordinates. */
+/* Only the pupils follow the pointer; world positions and body transforms are untouched. */
 (()=>{
 'use strict';
-const reduced=matchMedia('(prefers-reduced-motion: reduce)'),active=new Map(),turns=new Map();
-let nextIdle=performance.now()+6500,celebrate=false;
-const blocked=()=>document.hidden||reduced.matches||document.body.classList.contains('no-motion');
-const busy=()=>!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
-const people=()=>[...document.querySelectorAll('#objects .person')];
-function sync(){
- const now=performance.now();
- if(blocked()){active.clear();celebrate=false}
- for(const el of people()){
-  const action=el.querySelector('.character-action'),gesture=active.get(el.dataset.uid);
-  if(!action)continue;
-  if(!gesture||now>=gesture.end||blocked()){
-   if(gesture&&now>=gesture.end)active.delete(el.dataset.uid);
-   action.removeAttribute('data-gesture');action.style.removeProperty('--gesture-delay');continue;
-  }
-  // Rebuilds after a tap/drag resume the same gesture instead of restarting it.
-  if(action.dataset.gesture!==gesture.type){
-   action.style.setProperty('--gesture-delay',`${-(now-gesture.start)}ms`);
-   action.dataset.gesture=gesture.type;
-  }
+let pointer=null,frame=0;
+function paint(){frame=0;const pause=document.hidden||document.body.classList.contains('no-motion');
+ for(const pupils of document.querySelectorAll('.character-pupils')){
+  if(!pointer||pause){pupils.removeAttribute('transform');continue}
+  const parent=pupils.parentElement,matrix=parent.getScreenCTM?.();if(!matrix)continue;
+  try{const local=new DOMPoint(pointer.x,pointer.y).matrixTransform(matrix.inverse()),box=pupils.getBBox();
+   const dx=local.x-(box.x+box.width/2),dy=local.y-(box.y+box.height/2),distance=Math.hypot(dx,dy),strength=Math.min(1,distance/100);
+   const x=distance?dx/distance*4.8*strength:0,y=distance?dy/distance*4.6*strength:0;
+   pupils.setAttribute('transform',`translate(${x.toFixed(3)} ${y.toFixed(3)})`);
+  }catch{pupils.removeAttribute('transform')}
  }
 }
-function gesture(el,type,delay=0){
- if(!el||blocked())return;
- if(type==='wave'&&!el.querySelector('.character-arm-right'))type='hop';const uid=el.dataset.uid;
- // Objects held at a fixed hand position should not be left floating during a hop.
- const snapshot=window.Lernwelt?.snapshot();
- const objects=snapshot?.placed?Object.values(snapshot.placed).flat():[];
- const carrying=(Array.isArray(objects)?objects:[]).some(o=>o.carrier===uid);
- if(carrying)type='look';
- const start=performance.now()+delay;
- active.set(uid,{type,start,end:start+1800});sync();
-}
-window.addEventListener('world-use',({detail})=>{
- if(!WorldArt.chars.has(detail.id))return;
- const el=people().find(e=>e.dataset.uid===detail.uid),n=turns.get(detail.uid)||0;
- turns.set(detail.uid,n+1);gesture(el,['wave','hop','look'][n%3]);
-});
-window.addEventListener('character-celebrate',()=>{celebrate=true});
-document.addEventListener('visibilitychange',()=>{active.clear();nextIdle=performance.now()+6500;sync()});
-reduced.addEventListener('change',sync);
-new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['class']});
-setInterval(()=>{
- sync();if(blocked()||busy())return;
- const now=performance.now();
- if(celebrate){celebrate=false;people().forEach((el,i)=>gesture(el,'hop',i*220));nextIdle=now+9000;return}
- if(now<nextIdle)return;
- const list=people(),el=list[Math.floor(Math.random()*list.length)];
- if(el&&!active.has(el.dataset.uid))gesture(el,Math.random()<.45?'wave':'look');
- nextIdle=now+7000+Math.random()*5000;
-},180);
-window.LerndachsCharacters=Object.freeze({sync});
+function schedule(){if(!frame)frame=requestAnimationFrame(paint)}
+function follow(e){if(e.pointerType==='touch'&&e.type==='pointermove')return;pointer={x:e.clientX,y:e.clientY};schedule()}
+window.addEventListener('pointermove',follow,{passive:true});window.addEventListener('pointerdown',follow,{passive:true});
+document.documentElement.addEventListener('pointerleave',()=>{pointer=null;schedule()});window.addEventListener('blur',()=>{pointer=null;schedule()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pointer=null;schedule()});
+new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+window.LerndachsCharacters=Object.freeze({sync:schedule});
 })();
 
 ;
@@ -3606,7 +3574,7 @@ function open(next='settings'){
  if(mode==='settings')settings();else if(mode==='parents')parents();else window.LerndachsWorksheets?.render(content);
  if(!shell.open)shell.showModal();shell.scrollTop=0;
 }
-function settings(){const g=Learning.grades[J.profile.grade];content.innerHTML=`<div class="adult-heading"><p class="learn-eyebrow">DEINE WELT · DEINE EINSTELLUNGEN</p><h2 id="adult-title">Ein Platz für alles.</h2><p>Die Klasse bleibt auf diesem Gerät gespeichert. Hier kannst du sie ändern.</p></div><div class="settings-card"><span class="adult-symbol">▦</span><div><h3>${g?.label||'Noch keine Klasse gewählt'}</h3><p>Passende Aufgaben für deinen Lernweg.</p></div><button id="settings-grade">Klasse ändern →</button></div><div class="adult-entry-grid"><button data-adult="parents"><span>♡</span><strong>Für Eltern</strong><small>Lernwege, Fächer und Medienkompetenz im Blick.</small></button><button data-adult="teachers"><span>✎</span><strong>Für Lehrkräfte</strong><small>Aufgaben auswählen und als PDF mitnehmen.</small></button></div><div class="settings-tools"><button id="settings-help">Spielhilfe & Aufräumen</button><button data-install-app>App installieren</button></div><p class="adult-note">Ein gemeinsamer Lernstand pro Browser. Die Bereiche sind keine getrennten Konten und haben keinen Passwortschutz. Alle Lernbeobachtungen bleiben auf diesem Gerät.</p>`}
+function settings(){const g=Learning.grades[J.profile.grade];content.innerHTML=`<div class="adult-heading"><p class="learn-eyebrow">DEINE WELT · DEINE EINSTELLUNGEN</p><h2 id="adult-title">Ein Platz für alles.</h2><p>Die Klasse bleibt auf diesem Gerät gespeichert. Hier kannst du sie ändern.</p></div><div class="settings-card"><span class="adult-symbol">▦</span><div><h3>${g?.label||'Noch keine Klasse gewählt'}</h3><p>Passende Aufgaben für deinen Lernweg.</p></div><button id="settings-grade">Klasse ändern →</button></div><div class="adult-entry-grid"><button data-adult="parents"><span>♡</span><strong>Für Eltern</strong><small>Lernwege, Fächer und Medienkompetenz im Blick.</small></button><button data-adult="teachers"><span>✎</span><strong>Für Lehrkräfte</strong><small>Aufgaben auswählen und als PDF mitnehmen.</small></button></div><div class="settings-tools"><button id="settings-help">Spielhilfe & Aufräumen</button><button data-install-app>App installieren</button></div><a id="settings-impressum" class="settings-legal" href="impressum.html" target="_blank" rel="noopener">Impressum</a><p class="adult-note">Ein gemeinsamer Lernstand pro Browser. Die Bereiche sind keine getrennten Konten und haben keinen Passwortschutz. Alle Lernbeobachtungen bleiben auf diesem Gerät.</p>`}
 function metric(s){return `<span class="level-tag">${s.stage}</span><div class="level-track" aria-label="Lerndachs-Stufe ${s.stage}">${['Entdecken','Üben','Anwenden'].map((x,i)=>`<i class="${['Entdecken','Üben','Anwenden'].indexOf(s.stage)>=i?'lit':''}"></i>`).join('')}</div>`}
 function parents(){
  const g=Learning.grades[J.profile.grade],all=subjects().map(x=>({...x,...E.summary(x.id)})),observed=all.reduce((n,s)=>n+s.observed,0),known=all.reduce((n,s)=>n+s.known,0),range=['A als Einstieg','A bis B','B','B bis C','C'][J.profile.grade]||'noch offen';
@@ -3720,7 +3688,3 @@ const head=document.querySelector('#adventure-button');head.title='Eine neue Auf
 function refresh(){head.hidden=false;const waiting=!document.querySelector('#learning-dialog').open;head.classList.toggle('has-task',waiting);const q=Learning.currentTask;head.setAttribute('aria-label',q?'Aufgabe anzeigen: '+q[1]:'Nächste Aufgabe entdecken')}
 window.addEventListener('world-saved',refresh);window.addEventListener('task-waiting',refresh);document.querySelector('#learning-dialog').addEventListener('close',refresh);refresh();
 })();
-
-;
-/* Direct legal access is also available before onboarding or inside a modal. */
-(()=>{function attach(){for(const dialog of document.querySelectorAll('dialog')){if(dialog.querySelector(':scope > .dialog-legal'))continue;const footer=document.createElement('footer');footer.className='dialog-legal';const link=document.createElement('a');link.href='impressum.html';link.target='_blank';link.rel='noopener';link.textContent='Impressum';footer.append(link);dialog.append(footer)}}new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
