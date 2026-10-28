@@ -33,6 +33,18 @@ function starter(){window.dispatchEvent(new Event('request-opening'))}
 
 function targetCard(){const i=J.catalogue.find(i=>i.id===progress.target);if(!i)return '';const balance=Lernwelt.snapshot().balance,remaining=Math.max(0,i.price-balance);return `<div class="target-card"><div class="target-art">${J.preview(i,WorldArt.homes.some(h=>h.id===i.id))}</div><div><small>DEIN NÄCHSTES ZIEL</small><strong>${escape(i.name)}</strong><span>${balance} / ${i.price} Sterne · ${remaining?`noch ${Math.ceil(remaining/15)} neue Aufgaben`:'Du hast genug Sterne!'}</span><progress max="${i.price||1}" value="${Math.min(balance,i.price)}" aria-label="Sterne für dein Sparziel"></progress></div><button id="target-shop">${remaining?'Laden':'Holen'} →</button></div>`}
 function open(){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(true));return}cleanup();document.querySelector('#panel').close();mode='menu';menu();reveal()}
+const partnerInvitation='Komm, wir sammeln Sterne!';
+function readPartnerInvitation(){
+ speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(partnerInvitation+' Was möchtest du spielen?');speech.lang='de-DE';speech.rate=.85;speechSynthesis.speak(speech);
+}
+function invite(){
+ if(!progress.starterUnlocked){starter();return}
+ cleanup();document.querySelector('#panel').close();mode='menu';document.querySelector('#learn-close').hidden=false;
+ const labels={numbers:'Rechnen',words:'Lesen',nature:'Natur',music:'Musik',art:'Farben',media:'Medien'};
+ content.innerHTML=`<div class="learn-intro partner-intro"><div class="guide-face">${badger}</div><h2 id="learn-title">${partnerInvitation}</h2><p>Was möchtest du spielen?</p>${'speechSynthesis'in window?`<button id="read-partner" class="task-icon" aria-label="Vorlesen">${icon('sound')}</button>`:''}</div><div class="path-grid partner-paths">${paths.map(p=>`<button class="learning-path ${p.color}" data-path="${p.id}"><span class="path-symbol" aria-hidden="true">${p.icon}</span><strong>${labels[p.id]}</strong></button>`).join('')}</div>`;
+ reveal();if('speechSynthesis'in window&&WorldSound.status.enabled)readPartnerInvitation();
+}
+
 function menu(){
  cleanup();mode='menu';document.querySelector('#learn-close').hidden=false;
  const eligible=paths.flatMap(tasksFor),n=eligible.filter(finished).length;
@@ -40,7 +52,7 @@ function menu(){
  const tasks=tasksFor(p),count=tasks.filter(finished).length;return `<button class="learning-path ${p.color}" data-path="${p.id}"><span class="path-symbol">${p.icon}</span><small>${p.tag}</small><strong>${p.title}</strong><span>${p.desc}</span><div class="path-dots">${Array.from({length:tasks.length},(_,i)=>`<i class="${i<count?'done':''}"></i>`).join('')}<b>${count}/${tasks.length}</b></div><em>${count===tasks.length?'Noch mal entdecken ↗':'Los geht’s →'}</em></button>`;
  }).join('')}</div><button id="start-practice" class="practice-button">✦ Übungswerkstatt · neue Rechenaufgabe</button><div class="badge-row">${[[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']].map(([count,title])=>`<span class="${progress.done.length>=count?'earned':''}">${progress.done.length>=count?'✦':'◇'} ${title}</span>`).join('')}</div><p class="learning-footnote">Du darfst dir Zeit lassen und Hilfe holen.</p><button id="curriculum-info" class="curriculum-link">Für Erwachsene: Lernziele & Spielkonzept ↗</button>`;
 }
-function begin(id){progress.active=id;const tasks=currentTasks(),index=tasks.findIndex(q=>!finished(q));progress.index=index<0?0:index;progress.worldMoves=[];worldAttemptDone=false;persist();question()}
+function begin(id){if(progress.grade===null){chooseGrade(()=>begin(id));return}if(progress.opening!=='done'){progress.opening='done';window.dispatchEvent(new Event('opening-changed'))}progress.active=id;const tasks=currentTasks(),index=tasks.findIndex(q=>!finished(q));progress.index=index<0?0:index;progress.worldMoves=[];worldAttemptDone=false;persist();question()}
 function seek(){
  const q=currentTask(),p=active();if(!q||!p){resetStrip();return}mode='world';
  strip.hidden=false;document.querySelector('#adventure-button').hidden=true;
@@ -132,6 +144,7 @@ content.addEventListener('click',e=>{
  else if(b.id==='curriculum-info')curriculumInfo();
  else if(b.id==='task-hint'){window.LerndachsEvidence?.hint();const hint=document.querySelector('#task-hint-text');hint.hidden=!hint.hidden;b.setAttribute('aria-expanded',!hint.hidden)}
  else if(b.id==='play-sample'){stopSample();const duration=WorldSound.playSample(currentTask()[7].audio);b.textContent='♫ Hör gut hin …';sampleTimer=setTimeout(()=>{if(b.isConnected)b.textContent='↻ Noch einmal hören'},duration+100)}
+ else if(b.id==='read-partner')readPartnerInvitation();
  else if(b.id==='read-question'){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const q=currentTask(),u=new SpeechSynthesisUtterance(taskText(q,q[2])+'. '+q[3].join('. '));u.lang='de-DE';u.rate=.85;speechSynthesis.speak(u)}
 });
 function completeWorld(q){if(worldAttemptDone)return;worldAttemptDone=true;question();worldAttemptDone=true;success(q)}
@@ -151,8 +164,8 @@ window.addEventListener('world-use',e=>{
 document.querySelector('#learn-close').onclick=close;
 dialog.addEventListener('close',cleanup);
 window.addEventListener('request-grade-settings',()=>chooseGrade());
-document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=false;persist();if(!progress.starterUnlocked||progress.opening!=='done')starter();else if(currentTask())question();else Learning.nextFresh(true)};document.querySelector('#learn-button').onclick=open;
-window.addEventListener('request-starter',starter);window.addEventListener('request-learning',open);
+document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=false;persist();invite()};document.querySelector('#learn-button').onclick=open;
+window.addEventListener('request-starter',starter);window.addEventListener('request-learning',open);window.addEventListener('request-partner-learning',invite);
 window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(p){if(progress.grade===null)chooseGrade(()=>begin(p.id));else begin(p.id)}},nextFresh(manual=false){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(manual));return}const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();if(manual)return;const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
 if(!Number.isInteger(progress.grade)||!grades[progress.grade]){progress.grade=null;progress.active=null}
 updateHUD();if(progress.starterUnlocked&&progress.active)seek();

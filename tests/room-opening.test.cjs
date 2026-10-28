@@ -8,8 +8,8 @@ const {parseHTML}=require('linkedom');
 const root=resolve(__dirname,'..');
 const read=name=>readFileSync(resolve(root,name),'utf8');
 
-function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
- const {window}=parseHTML(read('index.html')),document=window.document,timers=new Map(),notes=[];
+function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
+ const {window}=parseHTML(read('index.html')),document=window.document,timers=new Map(),notes=[],spoken=[];
  let now=0,nextTimer=0,stored=saved?JSON.stringify(saved):null;
  const schedule=(fn,delay=0,interval=0)=>{const id=++nextTimer;timers.set(id,{fn,at:now+delay,interval});return id};
  const prototype=window.HTMLElement.prototype;
@@ -22,7 +22,10 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
  const scene=document.querySelector('#scene-scroll');scene.scrollLeft=0;
  Object.defineProperty(scene,'clientWidth',{value:800});Object.defineProperty(scene,'scrollWidth',{value:1600});
  Object.defineProperty(document.querySelector('#world'),'clientWidth',{value:1600});
- document.querySelector('#world').getScreenCTM=()=>({inverse:()=>({})});
+ document.querySelector('#world').getScreenCTM=()=>({a:1,d:1,e:-scene.scrollLeft,f:0,inverse:()=>({a:1,d:1,e:scene.scrollLeft,f:0})});
+ document.querySelector('.game-shell').getBoundingClientRect=()=>({left:0,top:0,right:800,bottom:900,width:800,height:900});
+ Object.defineProperty(document.querySelector('#radio-channel'),'offsetWidth',{value:76});
+ Object.defineProperty(document.querySelector('#radio-channel'),'offsetHeight',{value:56});
  function audioNode(){
   const parameter={setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){},setTargetAtTime(){}};
   return {frequency:{...parameter,setValueAtTime(value){notes.push(value)}},gain:parameter,threshold:{},knee:{},ratio:{},attack:{},release:{},connect(node){return node},disconnect(){},start(){},stop(){schedule(()=>this.onended?.())}};
@@ -40,7 +43,7 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
  }
  const events=new window.EventTarget();
  const context={document,console,crypto,structuredClone,AudioContext,Event:window.Event,CustomEvent:window.CustomEvent,
-  DOMPoint:class{constructor(x,y){this.x=x;this.y=y}matrixTransform(){return this}},
+  DOMPoint:class{constructor(x,y){this.x=x;this.y=y}matrixTransform(matrix){return {x:this.x*matrix.a+matrix.e,y:this.y*matrix.d+matrix.f}}},
   navigator:{},location:{protocol:'http:'},performance:{now:()=>now},innerWidth:800,
   localStorage:{getItem:()=>stored,setItem:(key,value)=>{stored=value}},
   matchMedia:()=>({matches:reducedMotion}),
@@ -49,6 +52,7 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
   requestAnimationFrame:fn=>schedule(fn,16),MutationObserver:class{observe(){}},
   addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args),dispatchEvent:event=>events.dispatchEvent(event)
  };
+ if(speech){context.speechSynthesis={cancel(){},speak(utterance){spoken.push(utterance.text)}};context.SpeechSynthesisUtterance=class{constructor(text){this.text=text}}}
  context.window=context;vm.createContext(context);vm.runInContext(read('app.js'),context,{filename:'app.js'});
  if(!realAudio)context.WorldSound={effect(){},sync(){},nextStation(){},stopSample(){}};
  const advance=milliseconds=>{
@@ -61,7 +65,7 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
   now=end;
  };
  const click=selector=>{const button=document.querySelector(selector);assert.ok(button,`Missing button: ${selector}`);button.click()};
- return {context,document,advance,click,notes,snapshot:()=>context.Lernwelt.snapshot(),saved:()=>JSON.parse(stored),
+ return {context,document,advance,click,notes,spoken,snapshot:()=>context.Lernwelt.snapshot(),saved:()=>JSON.parse(stored),
   pointer(type,x,y,selector){const event=new context.Event(type,{bubbles:true,cancelable:true});Object.assign(event,{clientX:x,clientY:y,pointerId:1,button:0});if(selector)document.querySelector(selector).dispatchEvent(event);else context.dispatchEvent(event)},
   tap(id){context.Lernwelt.use(id);advance(250)}};
 }
@@ -185,6 +189,39 @@ test('radio starts off, toggles, and stays off through other sounds and music sa
  assert.equal(loadGame(game.saved(),{realAudio:true}).context.Lernwelt.find('radio').on,false);
 });
 
+test('the radio channel button appears when on, cycles music, and follows the radio',()=>{
+ const game=loadGame(undefined,{realAudio:true}),{context,document,click,pointer,advance}=game,button=document.querySelector('#radio-channel');
+ assert.equal(button.hidden,true);
+ game.tap('radio');assert.equal(button.hidden,false);
+ const firstColor=button.style.backgroundColor,firstLeft=parseFloat(button.style.left);
+ click('#radio-channel');assert.equal(context.WorldSound.status.station,1);assert.equal(context.WorldSound.status.playing,true);
+ assert.equal(context.Lernwelt.find('radio').on,true);assert.notEqual(button.style.backgroundColor,firstColor);
+ const reload=loadGame(game.saved(),{realAudio:true});assert.equal(reload.context.WorldSound.status.station,1);
+ assert.equal(reload.document.querySelector('#radio-channel').hidden,true);
+ click('#radio-channel');assert.equal(context.WorldSound.status.station,2);
+ click('#radio-channel');assert.equal(context.WorldSound.status.station,0);assert.equal(button.style.backgroundColor,firstColor);
+ pointer('pointerdown',firstLeft+20,762,'#radio-channel');advance(400);
+ assert.equal(document.body.classList.contains('is-dragging'),false);pointer('pointerup',firstLeft+20,762);
+ const radio=context.Lernwelt.find('radio');radio.x-=120;context.LerndachsJourney.render();
+ assert.notEqual(parseFloat(button.style.left),firstLeft);
+ const scene=document.querySelector('#scene-scroll');scene.scrollLeft=1400;scene.dispatchEvent(new context.Event('scroll'));
+ assert.equal(button.hidden,true);
+ scene.scrollLeft=400;scene.dispatchEvent(new context.Event('scroll'));assert.equal(button.hidden,false);
+ game.tap('radio');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,false);
+});
+
+test('channel controls close after use or a tap elsewhere while music keeps playing',()=>{
+ const game=loadGame(undefined,{realAudio:true}),{context,document,advance,click,pointer}=game,button=document.querySelector('#radio-channel');
+ game.tap('radio');advance(4000);assert.equal(button.hidden,false);
+ click('#radio-channel');advance(4000);assert.equal(button.hidden,false);
+ advance(1100);assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
+ context.LerndachsJourney.render();assert.equal(button.hidden,true);
+ game.tap('radio');game.tap('radio');assert.equal(button.hidden,false);
+ game.tap('books');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
+ game.tap('radio');game.tap('radio');assert.equal(button.hidden,false);
+ pointer('pointerdown',20,20,'#help');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
+});
+
 test('a quick sofa tap keeps cushions above it; only a hold enables dragging',()=>{
  const game=loadGame(),{context,document,pointer,advance}=game,selector='[data-kind="sofa"]';
  const order=()=>Array.from(document.querySelector('#objects').children,node=>node.dataset.uid);
@@ -200,13 +237,64 @@ test('a quick sofa tap keeps cushions above it; only a hold enables dragging',()
  assert.equal(document.body.classList.contains('is-dragging'),false);
 });
 
-test('moving before the hold and cancelling a pickup do not move the sofa',()=>{
- const game=loadGame(),{context,pointer,advance}=game,selector='[data-kind="sofa"]';
+test('Dachs can still be found with a tap, then moved by holding and dragging',()=>{
+ const game=loadGame(),{context,pointer,advance}=game,selector='[data-kind="dachs"]';
+ game.tap('tea');game.tap('books');game.tap('plant');game.tap('sofa');
+ const dachs=context.Lernwelt.find('dachs');
+ pointer('pointerdown',dachs.x,dachs.y,selector);advance(100);
+ assert.equal(context.LerndachsJourney.profile.opening,'dachs');
+ pointer('pointerup',dachs.x,dachs.y);advance(250);
+ assert.equal(context.LerndachsJourney.profile.opening,'move-in');assert.equal(dachs.pose,'standing');
+ const start={x:dachs.x,y:dachs.y};
+ pointer('pointerdown',start.x,start.y,selector);pointer('pointermove',start.x-80,start.y-30);advance(330);
+ pointer('pointerup',start.x-80,start.y-30);advance(250);
+ assert.equal(dachs.x,start.x-80);assert.equal(dachs.y,start.y-30);
+ assert.equal(context.LerndachsJourney.profile.opening,'move-in');
+ const restored=loadGame(game.saved()).context.Lernwelt.find('dachs');
+ assert.equal(restored.x,dachs.x);assert.equal(restored.y,dachs.y);
+});
+
+test('Dachs offers lesson choices, remembers the chosen subject through class selection, and remains draggable',()=>{
+ const game=loadGame(),{context,document,click,pointer,advance}=game;
+ exploreAndMoveIn(game);game.tap('dachs');
+ assert.equal(document.querySelector('#learning-dialog').open,true);
+ assert.equal(document.querySelector('#learn-title').textContent,'Komm, wir sammeln Sterne!');
+ assert.equal(document.querySelectorAll('.partner-paths [data-path]').length,6);
+ assert.equal(document.querySelector('[data-grade]'),null);assert.equal(context.LerndachsJourney.profile.grade,null);
+ assert.equal(context.LerndachsJourney.profile.opening,'shop');
+ click('[data-path="music"]');assert.match(document.querySelector('#learn-title').textContent,/Klasse/);
+ click('[data-grade="1"]');click('#confirm-grade');
+ assert.equal(context.LerndachsJourney.profile.active,'music');assert.ok(context.Learning.currentTask[7].grades.includes(1));
+ assert.equal(context.LerndachsJourney.profile.opening,'done');
+ click('#learn-close');click('#adventure-button');
+ assert.equal(document.querySelectorAll('.partner-paths [data-path]').length,6);
+ click('[data-path="nature"]');assert.equal(context.LerndachsJourney.profile.active,'nature');
+ click('#learn-close');
+ const dachs=context.Lernwelt.find('dachs'),start={x:dachs.x,y:dachs.y};
+ pointer('pointerdown',start.x,start.y,'[data-kind="dachs"]');pointer('pointermove',start.x-80,start.y-30);advance(330);pointer('pointerup',start.x-80,start.y-30);advance(250);
+ assert.equal(dachs.x,start.x-80);assert.equal(dachs.y,start.y-30);assert.equal(document.querySelector('#learning-dialog').open,false);
+});
+
+test('Dachs reads his invitation aloud when sound is enabled and offers replay',()=>{
+ const game=loadGame(undefined,{realAudio:true,speech:true}),{document,click,spoken}=game;
+ exploreAndMoveIn(game);game.tap('dachs');
+ assert.deepEqual(spoken,['Komm, wir sammeln Sterne! Was möchtest du spielen?']);
+ click('#read-partner');assert.equal(spoken.length,2);
+ click('#learn-close');click('#sound-toggle');game.tap('dachs');
+ assert.equal(document.querySelector('#learning-dialog').open,true);assert.equal(spoken.length,2);
+});
+
+test('early pointer movement still drags, and cancellation restores its starting position',()=>{
+ const game=loadGame(),{context,document,pointer,advance}=game,selector='[data-kind="sofa"]';
  const sofa=context.Lernwelt.find('sofa'),start={x:sofa.x,y:sofa.y};
- pointer('pointerdown',start.x,start.y,selector);pointer('pointermove',start.x+30,start.y);advance(400);pointer('pointerup',start.x+30,start.y);
- assert.equal(sofa.x,start.x);assert.equal(sofa.y,start.y);
- pointer('pointerdown',start.x,start.y,selector);advance(330);pointer('pointermove',start.x+80,start.y+20);pointer('pointercancel',start.x+80,start.y+20);
- assert.equal(sofa.x,start.x);assert.equal(sofa.y,start.y);
+ pointer('pointerdown',start.x,start.y,selector);pointer('pointermove',start.x+30,start.y+20);advance(330);
+ assert.equal(document.body.classList.contains('is-dragging'),true);
+ assert.equal(sofa.x,start.x+30);assert.equal(sofa.y,start.y+20);
+ pointer('pointerup',start.x+30,start.y+20);
+ assert.equal(sofa.x,start.x+30);assert.equal(sofa.y,start.y+20);
+ const dropped={x:sofa.x,y:sofa.y};
+ pointer('pointerdown',dropped.x,dropped.y,selector);advance(330);pointer('pointermove',dropped.x+80,dropped.y+20);pointer('pointercancel',dropped.x+80,dropped.y+20);
+ assert.equal(sofa.x,dropped.x);assert.equal(sofa.y,dropped.y);
 });
 
 test('celebrations vary, stay above dialogs, clean up, and respect reduced motion',()=>{
