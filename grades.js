@@ -1084,5 +1084,4 @@ const missions=[
 ];
 for(const task of missions){const path=task[7].type==='garden'?'numbers':task[7].type==='memory'||task[7].goal==='carry'?'words':task[7].goal==='left'?'numbers':'nature';bank.paths.find(p=>p.id===path).items.unshift(task)}
 window.LerndachsGrades={0:{label:'Vorschule',note:'Bilder, kleine Mengen & Entdecken'},1:{label:'Klasse 1',note:'Zählen, erste Wörter & Alltag'},2:{label:'Klasse 2',note:'Rechnen bis 20 & kurze Sätze'},3:{label:'Klasse 3',note:'Rechnen bis 1000 & Texte verstehen'},4:{label:'Klasse 4',note:'Größere Zahlen & Zusammenhänge'}};
-window.LerndachsIntro={0:['Wie viele Umzugskisten siehst du?',['2','3','4'],1,'📦 📦 📦'],1:['2 Kisten stehen schon da. Eine kommt dazu. Wie viele sind es jetzt?',['2','3','4'],1,'📦 📦 + 📦'],2:['8 Bücher und 2 Bücher kommen in dein Regal. Wie viele sind es zusammen?',['9','10','12'],1,'8 + 2 = ?'],3:['30 Bücher und 20 Bücher warten im Umzugswagen. Wie viele sind es zusammen?',['40','50','60'],1,'30 + 20 = ?'],4:['120 Bausteine und 80 Bausteine gehören zum Einzug. Wie viele sind es zusammen?',['180','200','220'],1,'120 + 80 = ?']};
 })();

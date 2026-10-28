@@ -20,5 +20,6 @@ function petArt(id){
 function empty(home='garden'){return [...A.defaults(home).filter(o=>environment.has(o.id)),{uid:'welcome-radio-'+home,id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true}]}
 const starter=['sofa','rug','table','stool','plant','counter','shelf','books','tea','cushion','blanket','watering'];
 function starterObjects(home='garden'){return starter.map(id=>{const entries=A.defaults(home).filter(o=>o.id===id);const o=id==='plant'?entries.find(o=>o.x>1000):entries[0];return {...o,uid:'starter-'+home+'-'+id}})}
-window.LerndachsWorld={environment,pets,petArt,empty,starter,starterObjects,taskReward:15};
+A.names.dachs='Dachs';A.bounds.dachs=[-55,-110,110,115];
+window.LerndachsWorld={environment,pets,petArt,empty,starter,starterObjects,shopStock:['balloon','flower','picture'],welcomeStars:35,taskReward:15};
 })();

@@ -35,6 +35,7 @@ function plant(id){const hanging=id==='hanging';return `${hanging?P('M-34-72 0-1
 function art(id,variant='garden'){
 const accent=variant==='atelier'?C.purple:variant==='orchard'?C.coral:C.teal;
 switch(id){
+case'dachs':return `<g transform="translate(-50 -100)"><path d="M18 44Q4 13 30 22L49 30 70 21Q95 11 85 45Q104 94 51 96 0 96 18 44" fill="#787d82" stroke="#38434c" stroke-width="3"/><path d="M25 29 41 43 33 78Q15 65 25 29m49 0L58 43l9 35q19-13 7-49" fill="#fff4d9"/><path d="M42 46h17l9 33q-18 22-36 0Z" fill="#fff4d9"/><ellipse cx="32" cy="55" rx="5" ry="7" fill="#38434c"/><ellipse cx="68" cy="55" rx="5" ry="7" fill="#38434c"/><circle cx="29" cy="53" r="2" fill="white"/><circle cx="66" cy="53" r="2" fill="white"/><path d="M43 73q7-8 14 0l-7 7Z" fill="#38434c"/><path d="M44 86q6 5 12 0" fill="none" stroke="#38434c" stroke-width="2"/><ellipse cx="22" cy="69" rx="8" ry="4" fill="#f28c72"/><ellipse cx="78" cy="69" rx="8" ry="4" fill="#f28c72"/><path d="m70 89 12-6 9 9-11 5Z" fill="#4fbaa8" stroke="#38434c" stroke-width="2"/></g>`;
 case'milo':case'lumi':return human(id);case'pippa':return fox();case'mo':return leafling();
 case'sun':return `${G(Array.from({length:12},(_,i)=>P('M0-65v-14','none','#ffe58c',5).replace('<path',`<path transform="rotate(${i*30})"`)).join(''),'sun-rays')}${E(0,0,51,51,'#ffe797','#f8bd59',3)}${G(`${E(-17,-5,4.5,6,C.ink)}${E(17,-5,4.5,6,C.ink)}`,'eyes')}${E(-28,9,8,5,C.coral)}${E(28,9,8,5,C.coral)}${P('M-10 12q10 13 20 0')}`;
 case'cloud':return G(`${P('M-67 8q-20-38 13-43 0-37 34-27 20-40 48-12 32-4 32 25 39 3 30 36 24 28-17 30H-47q-43 0-20-9Z',C.white,'#c9e6eb',2)}${E(-10,-12,2.7,4,'#7b9ca3')}${E(12,-12,2.7,4,'#7b9ca3')}${P('M-3-2q5 4 10 0','none','#7b9ca3',2)}`,'cloud-drift');
@@ -133,7 +134,8 @@ function petArt(id){
 function empty(home='garden'){return [...A.defaults(home).filter(o=>environment.has(o.id)),{uid:'welcome-radio-'+home,id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true}]}
 const starter=['sofa','rug','table','stool','plant','counter','shelf','books','tea','cushion','blanket','watering'];
 function starterObjects(home='garden'){return starter.map(id=>{const entries=A.defaults(home).filter(o=>o.id===id);const o=id==='plant'?entries.find(o=>o.x>1000):entries[0];return {...o,uid:'starter-'+home+'-'+id}})}
-window.LerndachsWorld={environment,pets,petArt,empty,starter,starterObjects,taskReward:15};
+A.names.dachs='Dachs';A.bounds.dachs=[-55,-110,110,115];
+window.LerndachsWorld={environment,pets,petArt,empty,starter,starterObjects,shopStock:['balloon','flower','picture'],welcomeStars:35,taskReward:15};
 })();
 
 ;
@@ -165,7 +167,7 @@ const KEY='lerndachs.world.v3';
 const allItems=[...cast,...decor,...homes];
 const item=id=>allItems.find(i=>i.id===id);
 const uid=()=>crypto.randomUUID();
-function fresh(){return {version:3,balance:0,owned:['garden','radio',...LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:LerndachsWorld.empty()},stored:{},receipts:[],journey:{grade:null,starterEarned:false,starterUnlocked:false,done:[],active:null,index:0,target:'plant',together:false,turn:1,worldMoves:[],practice:0,badges:[]}}}
+function fresh(){return {version:3,balance:0,owned:['garden','radio',...LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:LerndachsWorld.empty()},stored:{},receipts:[],journey:{grade:null,starterEarned:false,starterUnlocked:false,done:[],active:null,index:0,target:null,together:false,turn:1,worldMoves:[],practice:0,badges:[]}}}
 let state=fresh(),storageOK=true;
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===3&&saved.journey&&Number.isSafeInteger(saved.balance)&&saved.balance>=0&&Array.isArray(saved.owned)&&saved.placed&&saved.stored&&Array.isArray(saved.receipts)&&homes.some(h=>h.id===saved.home)){state=saved;state.journey={...fresh().journey,...saved.journey};state.wallpapers??={}}}catch{}
 // Existing friends are preserved. New worlds choose their sole first figure explicitly.
@@ -174,8 +176,19 @@ for(const person of allPeople())if(person.characterName==='undefined')person.cha
 if(!state.journey.playerUid&&allPeople().length)state.journey.playerUid=allPeople()[0].uid;
 if(!state.radioWelcomed){if(![...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].some(o=>o.id==='radio'))state.placed[state.home].push({uid:uid(),id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true});if(!state.owned.includes('radio'))state.owned.push('radio');state.radioWelcomed=true}
 state.audioSettings??={enabled:true,volume:.6,station:0};if(!state.audioSettings.gainVersion){if(state.audioSettings.volume===.35)state.audioSettings.volume=.6;state.audioSettings.gainVersion=1}
-const objectName=o=>o.characterName||o.petName||item(o.id)?.name||'Objekt';
-let activePanel='',shopTab='decor',furnitureTab='props',sound=false,selected=null,drag=null,pan=null,audio;
+if(!state.journey.starterUnlocked){
+ state.journey.opening??='explore';
+ const existing=[...Object.values(state.placed).flat(),...Object.values(state.stored).flat()];
+ for(const o of LerndachsWorld.starterObjects('garden')){
+  if(!existing.some(placed=>placed.id===o.id))state.placed.garden.push(o);
+  if(!state.owned.includes(o.id))state.owned.push(o.id);
+ }
+ if(!existing.some(o=>o.id==='dachs'))state.placed.garden.push({uid:'room-dachs',id:'dachs',x:885,y:500,s:1,layer:2.9});
+}else state.journey.opening??='done';
+if(!LerndachsWorld.shopStock.includes(state.journey.target))state.journey.target=null;
+const objectName=o=>o.characterName||o.petName||item(o.id)?.name||A.names[o.id]||'Objekt';
+let activePanel='',furnitureTab='props',sound=false,selected=null,drag=null,pan=null,audio;
+const reactions=new Map();
 const current=()=>state.placed[state.home]??=(LerndachsWorld.empty(state.home));
 const stored=()=>state.stored[state.home]??=[];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{storageOK=false}$('#balance').textContent=state.balance;$('#bag-count').textContent=stored().length;window.dispatchEvent(new Event('world-saved'))}
@@ -190,7 +203,7 @@ function specialArt(o){let s=art(o.id,state.home);if(o.id==='fridge'&&o.on){s+=`
  if(['lamp','pendant'].includes(o.id)&&o.on)s+=E(0,o.id==='lamp'?-55:-25,78,60,'#ffe58738');
  return s;
 }
-function renderObjects(){syncCarried();const markup=current().slice().sort((a,b)=>(a.layer??3)-(b.layer??3)||a.y-b.y).map((o,i)=>{const b=bounds[o.id]||[-50,-100,100,110],isChar=chars.has(o.id),isSmall=b[2]<170&&o.id!=='balloon';return `<g class="movable ${chars.has(o.id)?'person':''} ${selected===o.uid?'selected':''} ${o.layer===0?'sky-object':''}" data-uid="${o.uid}" data-kind="${o.id}" data-on="${!!o.on}" transform="${transform(o)}" tabindex="0" role="button" aria-label="${escapeText(objectName(o))}: bewegen, benutzen oder einpacken" style="--idle-delay:${i%7*.37}s"><title>${escapeText(objectName(o))}</title>${R(b[0]-5,b[1]-5,b[2]+10,b[3]+10,'none',13,C.white,4).replace('<rect','<rect class="selection-outline"')}${isSmall?R(Math.min(-38,b[0]),Math.min(-75,b[1]),Math.max(76,b[2]),Math.max(76,b[3]),'transparent',0,'none'):isChar?R(-61,-229,122,235,'transparent',0,'none'):''}<g class="sprite">${specialArt(o)}</g></g>`});$('#objects').innerHTML=markup.filter((s,i)=>!s.includes('data-kind="tree"')).join('');const trees=$('#tree-layer');if(trees)trees.innerHTML=markup.filter(s=>s.includes('data-kind="tree"')).join('');updateSelection();window.WorldSound?.sync();window.LerndachsCharacters?.sync()}
+function renderObjects(){syncCarried();const markup=current().slice().sort((a,b)=>(a.layer??3)-(b.layer??3)||a.y-b.y).map((o,i)=>{const b=bounds[o.id]||[-50,-100,100,110],isChar=chars.has(o.id),isSmall=b[2]<170&&o.id!=='balloon';return `<g class="movable ${chars.has(o.id)?'person':''} ${selected===o.uid?'selected':''} ${o.layer===0?'sky-object':''} ${reactions.has(o.uid)?'reacting':''}" data-uid="${o.uid}" data-kind="${o.id}" data-on="${!!o.on}" transform="${transform(o)}" tabindex="0" role="button" aria-label="${escapeText(objectName(o))}: bewegen, benutzen oder einpacken" style="--idle-delay:${i%7*.37}s"><title>${escapeText(objectName(o))}</title>${R(b[0]-5,b[1]-5,b[2]+10,b[3]+10,'none',13,C.white,4).replace('<rect','<rect class="selection-outline"')}${isSmall?R(Math.min(-38,b[0]),Math.min(-75,b[1]),Math.max(76,b[2]),Math.max(76,b[3]),'transparent',0,'none'):isChar?R(-61,-229,122,235,'transparent',0,'none'):''}<g class="sprite">${specialArt(o)}</g></g>`});$('#objects').innerHTML=markup.filter((s,i)=>!s.includes('data-kind="tree"')).join('');const trees=$('#tree-layer');if(trees)trees.innerHTML=markup.filter(s=>s.includes('data-kind="tree"')).join('');updateSelection();window.WorldSound?.sync();window.LerndachsCharacters?.sync()}
 function render(){
  $('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]||0);$('.playground').classList.toggle('night',state.night);document.body.classList.toggle('no-motion',state.paused);
  $('#location').textContent=homes.find(h=>h.id===state.home).name;$('#day-label').textContent=state.night?'Geschichten unterm Sternenhimmel.':'Dein Tag. Deine Geschichte.';
@@ -205,32 +218,37 @@ function effect(o,type='spark'){
  const g=document.createElementNS('http://www.w3.org/2000/svg','g');let x=o.x,y=o.y-(chars.has(o.id)?250:90),s='';
  if(type==='rain'){for(let i=0;i<9;i++)s+=`<path class="fx-drop" style="animation-delay:${i*.07}s" d="M${x-45+i*12} ${o.y+18}l-4 11" stroke="#56b6d1" stroke-width="5" stroke-linecap="round"/>`}
  else if(type==='music'){for(let i=0;i<4;i++)s+=`<text class="fx-note" x="${x-40+i*27}" y="${y-i%2*18}" fill="${[C.coral,C.deep,C.purple][i%3]}" font-size="35" style="animation-delay:${i*.15}s">${i%2?'♫':'♪'}</text>`}
+ else if(type==='hearts'){for(let i=0;i<4;i++)s+=`<text class="fx-note" x="${x-35+i*24}" y="${y-i%2*16}" fill="${C.coral}" font-size="28" style="animation-delay:${i*.12}s">♥</text>`}
  else{for(let i=0;i<8;i++){const a=i*Math.PI/4;s+=`<path class="fx-particle" style="--dx:${Math.cos(a)*62}px;--dy:${Math.sin(a)*55-32}px;animation-delay:${i*.025}s" d="m${x+Math.cos(a)*14} ${y+Math.sin(a)*15} 4-8 4 8 8 4-8 4-4 8-4-8-8-4Z" fill="${[C.yellow,C.coral,C.teal,C.pink][i%4]}"/>`}}
  g.innerHTML=s;$('#effects').append(g);setTimeout(()=>g.remove(),2200);
 }
-function animate(o){const el=document.querySelector(`[data-uid="${o.uid}"]`);el?.classList.remove('reacting');if(el){void el.getBoundingClientRect();el.classList.add('reacting');setTimeout(()=>el.classList.remove('reacting'),750)}}
+function animate(o){
+ clearTimeout(reactions.get(o.uid));
+ reactions.set(o.uid,setTimeout(()=>{reactions.delete(o.uid);document.querySelector(`[data-uid="${o.uid}"]`)?.classList.remove('reacting')},850));
+ const el=document.querySelector(`[data-uid="${o.uid}"]`);if(el){el.classList.remove('reacting');void el.getBoundingClientRect();el.classList.add('reacting')}
+}
 function use(o){
- if(!o)return;select(o);animate(o);window.dispatchEvent(new CustomEvent('world-use',{detail:{id:o.id,uid:o.uid}}));if(window.WorldSound)WorldSound.effect(o.id);if(o.id==='balloon'){effect(o);pack(o);toast('Plopp! Dein Ballon wartet in der Tasche.',()=>restore(o.uid));return}if(o.id==='clock'){const h=document.querySelector(`[data-uid="${o.uid}"] .clock-hand`);if(!state.paused)h?.animate([{transform:'rotate(0deg)'},{transform:'rotate(720deg)'}],{duration:1000});effect(o);return}
- if(LerndachsWorld.pets.some(p=>p.id===o.id)){showPet(o);return}
+ if(!o)return;select(o);animate(o);window.dispatchEvent(new CustomEvent('world-use',{detail:{id:o.id,uid:o.uid}}));if(window.WorldSound)WorldSound.effect(o.id);if(o.id==='dachs'){select(null);effect(o);return}if(o.id==='balloon'){effect(o);return}if(o.id==='clock'){const h=document.querySelector(`[data-uid="${o.uid}"] .clock-hand`);if(!state.paused)h?.animate([{transform:'rotate(0deg)'},{transform:'rotate(720deg)'}],{duration:1000});effect(o);return}
+ if(LerndachsWorld.pets.some(p=>p.id===o.id)){effect(o,'hearts');showPet(o);return}
  if(o.id==='watering'){const plant=current().find(p=>p.id==='plant'&&Math.hypot(p.x-o.x,p.y-o.y)<170);effect(plant||o,'rain');return}
  if(o.id==='sun'){sunClick();state.night=!state.night;render();effect(o);return}
- if(o.id==='cloud'){effect(o,'rain');chime();return}
+ if(o.id==='cloud'){effect(o,'rain');return}
  if(o.id==='radio'){o.on=true;window.WorldSound?.nextStation();effect(o,'music');save();return}if(o.id==='guitar'){effect(o,'music');save();return}
- if(['lamp','pendant','fridge','counter','cabinet'].includes(o.id)){o.on=!o.on;renderObjects();animate(o);chime();save();return}
+ if(['lamp','pendant','fridge','counter','cabinet'].includes(o.id)){o.on=!o.on;renderObjects();animate(o);save();return}
  if(o.id==='camera'){const flash=document.createElement('div');flash.className='flash';$('.game-shell').append(flash);setTimeout(()=>flash.remove(),500);effect(o);return}
- if(o.id==='sofa'||o.id==='bed'){const c=current().filter(c=>chars.has(c.id)).sort((a,b)=>Math.abs(a.x-o.x)-Math.abs(b.x-o.x))[0];if(c){c.x=o.x+(c.x<o.x?-65:65);c.y=o.y-52;renderObjects();effect(c)}return}
+ if(o.id==='sofa'||o.id==='bed'){const c=current().filter(c=>chars.has(c.id)).sort((a,b)=>Math.abs(a.x-o.x)-Math.abs(b.x-o.x))[0];if(c){c.x=o.x+(c.x<o.x?-65:65);c.y=o.y-52;renderObjects();animate(c)}effect(o);return}
  if(o.id==='fan'){o.on=!o.on;const el=document.querySelector(`[data-uid="${o.uid}"] .fan-spin`);if(el)el.style.animationPlayState=o.on?'paused':'running';save();return}
- effect(o,['cat','fishbowl'].includes(o.id)?'music':'spark');chime();
+ effect(o);
 }
 function pack(o){
- if(!o)return;const home=state.home,copy=structuredClone(o),carried=current().filter(x=>x.carrier===o.uid);for(const x of carried)delete x.carrier;
+ if(!o||o.id==='dachs')return;const home=state.home,copy=structuredClone(o),carried=current().filter(x=>x.carrier===o.uid);for(const x of carried)delete x.carrier;
  state.placed[home]=current().filter(x=>x.uid!==o.uid);delete o.carrier;stored().push(o);select(null);renderObjects();save();toast(`${item(o.id)?.name} ist in deiner Tasche.`,()=>{if(!state.stored[home].some(x=>x.uid===copy.uid))return;state.stored[home]=state.stored[home].filter(x=>x.uid!==copy.uid);state.placed[home].push(copy);if(state.home===home)renderObjects();save()});
 }
 function restore(uidToRestore){if(current().length>=120){toast('Packe erst etwas ein, damit Platz bleibt.');return}const o=stored().find(o=>o.uid===uidToRestore);if(!o)return;state.stored[state.home]=stored().filter(x=>x.uid!==uidToRestore);delete o.carrier;current().push(o);renderObjects();save();$('#panel').close();focusObject(o);effect(o);toast(`${item(o.id)?.name} ist wieder da.`)}
 function focusObject(o){const s=$('#scene-scroll'),scale=$('#world').clientWidth/1600;s.scrollTo({left:Math.max(0,o.x*scale-s.clientWidth/2),behavior:state.paused?'instant':'smooth'});select(o)}
 function carryOrDrop(o){if(chars.has(o.id)||!bounds[o.id]||bounds[o.id][2]>165||['sun','cloud','hanging','balloon'].includes(o.id))return;const c=current().find(c=>chars.has(c.id)&&Math.abs(c.x-o.x)<72&&Math.abs(c.y-91-o.y)<72);if(c){o.carrier=c.uid;o.dx=o.x<c.x?-55:55;o.layer=5;syncCarried();effect(c)}}
 $('#world').addEventListener('pointerdown',e=>{
- const el=e.target.closest('.movable');if(!el||e.button>0)return;e.preventDefault();e.stopPropagation();const o=current().find(o=>o.uid===el.dataset.uid),p=worldPoint(e);delete o.carrier;
+ const el=e.target.closest('.movable');if(!el||e.button>0)return;e.preventDefault();e.stopPropagation();const o=current().find(o=>o.uid===el.dataset.uid);if(o.id==='dachs'){use(o);return}const p=worldPoint(e);delete o.carrier;
  drag={el,o,start:p,ox:o.x,oy:o.y,moved:false,pointer:e.pointerId};select(o);el.classList.add('dragging');el.parentElement.append(el);el.setPointerCapture(e.pointerId);document.body.classList.add('is-dragging');$('#welcome-hint').hidden=true;
 });
 window.addEventListener('pointermove',e=>{
@@ -238,7 +256,7 @@ window.addEventListener('pointermove',e=>{
  drag.o.x=Math.max(40,Math.min(1560,drag.ox+p.x-drag.start.x));drag.o.y=Math.max(85,Math.min(864,drag.oy+p.y-drag.start.y));drag.el.setAttribute('transform',transform(drag.o));syncCarried();for(const o of current().filter(o=>o.carrier===drag.o.uid))document.querySelector(`[data-uid="${o.uid}"]`)?.setAttribute('transform',transform(o));
  $('#bag-button').classList.toggle('drop-ready',bagHit(e.clientX,e.clientY));const s=$('#scene-scroll');if(e.clientX<40)s.scrollLeft-=12;else if(e.clientX>innerWidth-40)s.scrollLeft+=12;
 });
-function finishDrag(e){if(!drag)return;const d=drag;drag=null;document.body.classList.remove('is-dragging');$('#bag-button').classList.remove('drop-ready');d.el.classList.remove('dragging');if(e.type==='pointercancel'){d.o.x=d.ox;d.o.y=d.oy}else if(d.moved&&bagHit(e.clientX,e.clientY)){d.o.x=d.ox;d.o.y=d.oy;pack(d.o);return}else if(d.moved){carryOrDrop(d.o)}else use(d.o);renderObjects();save();if(d.moved)window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:d.o.uid,id:d.o.id}}))}
+function finishDrag(e){if(!drag)return;const d=drag;drag=null;document.body.classList.remove('is-dragging');$('#bag-button').classList.remove('drop-ready');d.el.classList.remove('dragging');if(e.type==='pointercancel'){d.o.x=d.ox;d.o.y=d.oy}else if(d.moved&&bagHit(e.clientX,e.clientY)){d.o.x=d.ox;d.o.y=d.oy;pack(d.o);return}else if(d.moved){carryOrDrop(d.o);animate(d.o);WorldSound.effect('drop')}else use(d.o);renderObjects();save();if(d.moved)window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:d.o.uid,id:d.o.id}}))}
 window.addEventListener('pointerup',finishDrag);window.addEventListener('pointercancel',finishDrag);
 $('#world').addEventListener('keydown',e=>{
  const el=e.target.closest('.movable');if(!el)return;const o=current().find(o=>o.uid===el.dataset.uid),delta={ArrowLeft:[-15,0],ArrowRight:[15,0],ArrowUp:[0,-15],ArrowDown:[0,15]}[e.key];select(o);
@@ -249,45 +267,57 @@ $('#world').addEventListener('focusin',e=>{const el=e.target.closest('.movable')
 const scene=$('#scene-scroll');
 scene.addEventListener('pointerdown',e=>{if(e.target.closest('.movable')||e.button>0)return;pan={x:e.clientX,scroll:scene.scrollLeft,y:e.clientY,moved:false};scene.setPointerCapture(e.pointerId)});
 scene.addEventListener('pointermove',e=>{if(!pan||drag)return;if(Math.abs(e.clientX-pan.x)>5)pan.moved=true;scene.style.scrollBehavior='auto';scene.scrollLeft=pan.scroll+pan.x-e.clientX});
-scene.addEventListener('pointerup',e=>{if(!pan)return;if(!pan.moved){select(null);const p=worldPoint(e);if(p.y<580){state.wallpapers[state.home]=((state.wallpapers[state.home]||0)+1)%3;$('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]);renderObjects();save()}else effect({x:p.x,y:p.y+90})}pan=null;scene.style.scrollBehavior=''});
+scene.addEventListener('pointerup',e=>{if(!pan)return;if(!pan.moved){select(null);const p=worldPoint(e);if(p.y<580){state.wallpapers[state.home]=((state.wallpapers[state.home]||0)+1)%3;$('#backdrop').innerHTML=A.shell(state.home,state.wallpapers[state.home]);renderObjects();save()}else effect({x:p.x,y:p.y+90});WorldSound.effect('tap');window.dispatchEvent(new Event('world-touch'))}pan=null;scene.style.scrollBehavior=''});
 scene.addEventListener('pointercancel',()=>{pan=null});
 function panButtons(){const s=$('#scene-scroll');$('#pan-left').disabled=s.scrollLeft<4;$('#pan-right').disabled=s.scrollLeft>s.scrollWidth-s.clientWidth-4}
 scene.addEventListener('scroll',panButtons,{passive:true});window.addEventListener('resize',()=>{centerScene();panButtons()});
 $('#pan-left').onclick=()=>scene.scrollBy({left:-scene.clientWidth*.65,behavior:state.paused?'instant':'smooth'});$('#pan-right').onclick=()=>scene.scrollBy({left:scene.clientWidth*.65,behavior:state.paused?'instant':'smooth'});
 function centerScene(){const s=$('#scene-scroll');s.scrollLeft=Math.max(0,$('#world').clientWidth*.5-s.clientWidth/2);panButtons()}
 function chime(){if(window.WorldSound){WorldSound.effect('reward');return}if(!sound)return;try{audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();[523.25,659.25,783.99].forEach((hz,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.13;o.type='sine';o.frequency.value=hz;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.035,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.31)})}catch{}}
-const panelTitles={shop:['DEIN NÄCHSTES KLEINES ABENTEUER','Dein kleiner Laden'],residents:['WER SPIELT HEUTE MIT?','Deine Figuren'],furniture:['ALLES DARF ANDERS WERDEN','Deine Einrichtung'],map:['EIN NEUER ORT, EINE NEUE GESCHICHTE','Deine Nachbarschaft'],bag:['WEGGELEGT IST NICHT VERLOREN','Deine Tasche'],rewards:['AUS ERFOLGEN WERDEN MÖGLICHKEITEN','Sterne für deine Welt'],help:['WILLKOMMEN BEI LERNDACHS','Einfach alles ausprobieren.']};
+const panelTitles={shop:['','Der kleine Laden'],residents:['WER SPIELT HEUTE MIT?','Deine Figuren'],furniture:['ALLES DARF ANDERS WERDEN','Deine Einrichtung'],map:['EIN NEUER ORT, EINE NEUE GESCHICHTE','Deine Nachbarschaft'],bag:['WEGGELEGT IST NICHT VERLOREN','Deine Tasche'],rewards:['','Deine Sterne'],help:['WILLKOMMEN BEI LERNDACHS','Einfach alles ausprobieren.']};
 function showPanel(type){if(!state.journey.starterUnlocked&&['shop','furniture','map','residents'].includes(type)){window.dispatchEvent(new Event('request-starter'));return}activePanel=type;$('#panel-kicker').textContent=panelTitles[type][0];$('#panel-title').textContent=panelTitles[type][1];renderPanel();if(!$('#panel').open)$('#panel').showModal();$('#panel-content button:not(:disabled)')?.focus({preventScroll:true})}
 function preview(i,isHouse=false){const b=isHouse?[-105,-160,210,180]:bounds[i.id]||[-65,-140,130,160];return `<svg viewBox="${b.join(' ')}" aria-hidden="true">${isHouse?A.houseArt(i):art(i.id,state.home)}</svg>`}
 function card(i,type='decor',storedObject){const own=state.owned.includes(i.id),isHouse=type==='houses',isChar=type==='figures';let action='place',label=isChar?'Mitspielen':'Hinstellen',disabled=false;
- if(storedObject){action='restore';label='Zurückholen'}else if(activePanel==='shop'){action='buy';label=own&&!i.repeatable?'✓ Schon deins':`${i.price} ✦ · ${own?'Noch eins':'Holen'}`;disabled=own&&!i.repeatable}
+ if(storedObject){action='restore';label='Zurückholen'}else if(activePanel==='shop'){action='buy';label=own&&!i.repeatable?'Schon deins':`${i.price} ✦ · Holen`;disabled=own&&!i.repeatable}
  else if(isHouse){action=own?'visit':'store';label=state.home===i.id?'Hier bist du':own?'Besuchen':`${i.price} ✦ · Laden`;disabled=state.home===i.id}
  else if(isChar&&current().some(o=>o.id===i.id)){label='✓ Spielt mit';disabled=true}
  const displayName=storedObject?objectName(storedObject):current().find(o=>o.id===i.id)?.petName||i.name;
- const targetButton=activePanel==='shop'&&!disabled?`<button class="target-button" data-action="target" data-id="${i.id}">${state.journey.target===i.id?'✓ Dein Sparziel':'Als Sparziel wählen'}</button>`:'';
- return `<article class="item-card"><div class="item-art">${preview(i,isHouse)}</div><div class="item-body"><h3>${escapeText(displayName)}</h3><p>${i.note||'Bereit für die nächste Geschichte.'}</p><button data-action="${action}" data-id="${storedObject?.uid||i.id}" ${disabled?'disabled':''}>${label}</button>${targetButton}</div></article>`}
+ return `<article class="item-card"><div class="item-art">${preview(i,isHouse)}</div><div class="item-body"><h3>${escapeText(displayName)}</h3>${activePanel==='shop'?'':`<p>${i.note||'Bereit für die nächste Geschichte.'}</p>`}<button data-action="${action}" data-id="${storedObject?.uid||i.id}" ${disabled?'disabled':''}>${label}</button></div></article>`;
+}
 function renderPanel(){const c=$('#panel-content');
- if(activePanel==='shop'){const items=shopTab==='figures'?cast:shopTab==='houses'?homes:shopTab==='pets'?decor.filter(i=>i.kind==='pet'):decor.filter(i=>i.kind==='decor');c.innerHTML=`<div class="tabs" aria-label="Ladenkategorien">${[['decor','Einrichtung'],['bundles','Pakete'],['pets','Haustiere'],['figures','Figuren'],['houses','Häuser']].map(([id,n])=>`<button data-tab="${id}" aria-pressed="${shopTab===id}">${n}</button>`).join('')}</div><div class="card-grid">${items.map(i=>card(i,shopTab)).join('')}</div><p class="note">Deine Sterne: <strong>${state.balance} ✦</strong> · Möbel ab 20 Sternen, Haustiere ab 300 Sternen. Jede neue Aufgabe bringt 15 Sterne.</p><button class="primary wide" data-action="learn">Sterne mit Aufgaben verdienen →</button>`}
+ if(activePanel==='shop'){
+  const items=LerndachsWorld.shopStock.map(item),target=item(state.journey.target),missing=target?target.price-state.balance:0;
+  c.innerHTML=`<div class="shop-wallet">Deine Sterne <strong>${state.balance} ✦</strong></div>${missing>0?`<div class="shop-invitation" role="status"><p>Noch ${missing} Sterne für ${escapeText(target.name)}.</p><button class="journey-primary" data-action="learn">Sterne sammeln</button></div>`:''}<div class="card-grid first-shop">${items.map(i=>card(i)).join('')}</div><p class="shop-later">Später gibt’s hier mehr.</p>`;
+ }
  else if(activePanel==='residents'&&window.LerndachsFriends){c.innerHTML='';LerndachsFriends.render(c)}
  else if(activePanel==='residents')c.innerHTML=`<div class="card-grid">${[...cast,...decor.filter(i=>i.kind==='pet')].filter(i=>state.owned.includes(i.id)).map(i=>card(i,'figures')).join('')}</div><p class="note">Tippe auf eine Figur, damit sie mitspielt. Figuren in deiner Tasche kannst du dort zurückholen.</p><button class="text-button" data-action="store">Neue Freunde im Laden →</button>`;
  else if(activePanel==='furniture'){const building=['sofa','bed','table','cabinet','fridge','counter','stool','shelf','rug','window','curtain','easel'];const items=decor.filter(i=>state.owned.includes(i.id)&&(furnitureTab==='furniture'?building.includes(i.id):!building.includes(i.id)));c.innerHTML=`<div class="tabs">${[['props','Kleine Dinge'],['furniture','Möbel & Raum']].map(([id,n])=>`<button data-furniture-tab="${id}" aria-pressed="${furnitureTab===id}">${n}</button>`).join('')}</div><div class="card-grid">${items.map(i=>card(i)).join('')}</div><p class="note">Auch Sonne, Wolken, Fenster und Möbel kannst du verschieben und einpacken.</p>`}
  else if(activePanel==='bag')c.innerHTML=`<p class="note" style="margin:0 0 18px">Zieh Dinge auf die Tasche oder wähle „Einpacken“. Hier kannst du sie jederzeit zurückholen.</p>${stored().length?`<div class="card-grid">${stored().map(o=>card(item(o.id),'decor',o)).join('')}</div>`:'<div class="empty"><strong>Hier ist noch Platz für deine Ideen.</strong>Deine eingepackten Dinge landen hier. Sie bleiben gespeichert.</div>'}`;
- else if(activePanel==='map')c.innerHTML=`<div class="card-grid">${homes.map(i=>card(i,'houses')).join('')}</div><p class="note">Jedes Zuhause hat seine eigene Einrichtung und Tasche.</p>`;
- else if(activePanel==='rewards')c.innerHTML=`<div class="reward-art">✦</div><div class="dialog-copy"><p><strong>Aus deinen Ideen wird ein Zuhause.</strong></p><p>Eine neue gelöste Aufgabe bringt 15 Sterne. Mit Sternen holst du Möbel, Pflanzen und tierische Freunde. Tipps und neue Versuche sind immer erlaubt.</p><p>Dein Guthaben: <strong>${state.balance} Sterne</strong></p></div><button class="primary wide" data-action="learn">Nächste Aufgabe spielen →</button><p class="note">Keine Käufe mit Echtgeld. Keine Werbevideos. Mit einer kleinen Sonnen-Überraschung.</p>`;
+ else if(activePanel==='map')c.innerHTML=`<div class="card-grid">${homes.filter(i=>state.owned.includes(i.id)).map(i=>card(i,'houses')).join('')}</div><p class="note">Jedes Zuhause hat seine eigene Einrichtung und Tasche.</p>`;
+ else if(activePanel==='rewards')c.innerHTML=`<div class="reward-art">✦</div><div class="dialog-copy"><p>Für jedes neue Rätsel gibt’s 15 Sterne.</p><p>Du hast <strong>${state.balance} Sterne.</strong></p></div><button class="primary wide" data-action="learn">Sterne sammeln</button>`;
  else c.innerHTML=`<div class="info-list"><p><strong>Alles ist zum Anfassen da.</strong><br>Figuren, Möbel, Pflanzen, Lampen, Sonne und Wolken: Tippe etwas an oder zieh es an einen neuen Platz.</p><p><strong>Einpacken & zurückholen.</strong><br>Zieh ein Objekt auf die Tasche oder tippe nach dem Auswählen auf das Taschen-Symbol. Die Dinge bleiben erhalten.</p><p><strong>Kleine Überraschungen.</strong><br>Öffne den Kühlschrank, dreh den Wasserhahn auf, lass es regnen, spiele Gitarre oder setze eine Figur aufs Sofa. Kleine Dinge kannst du einer Figur in die Hand ziehen.</p><p><strong>Deine Welt, dein Tempo.</strong><br>Mit den Pfeilen oder durch Ziehen am Hintergrund schaust du dich um. Tippe auf eine Wand, um ihre Farbe zu ändern. Oben kannst du Animationen und Töne umschalten.</p><p><strong>Tastatur.</strong><br>Tab wählt aus, Pfeiltasten bewegen, Enter benutzt, Entf packt ein. Escape hebt die Auswahl auf.</p></div><div class="settings-actions"><button data-action="tidy">Vorhandene Dinge aufräumen</button><button data-action="fullscreen">Vollbild umschalten</button><button data-install-app>App installieren</button></div><p class="note">${storageOK?'Lokal in diesem Browser gespeichert.':'Lokale Speicherung ist nicht verfügbar.'} Lerndachs ist ein eigenständiger Entwurf mit neu erstellten Grafiken und Klängen. Keine Verbindung zu Toca Boca oder Duolingo. Arbeitstitel.</p>`;
 }
-const originalRenderPanel=renderPanel;renderPanel=function(){originalRenderPanel();const c=$('#panel-content');if(activePanel==='shop'&&shopTab==='bundles')window.LerndachsBundles?.render(c);if(activePanel==='shop'&&shopTab==='figures')window.LerndachsFriends?.render(c)};
-$('#panel-content').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(b.dataset.tab){shopTab=b.dataset.tab;renderPanel();return}if(b.dataset.furnitureTab){furnitureTab=b.dataset.furnitureTab;renderPanel();return}
- if(action==='buy'){const i=item(id);if(!state.journey.starterUnlocked)return;if(!homes.some(h=>h.id===id)&&current().length>=120){toast('Dein Raum ist voll. Packe zuerst etwas ein.');return}const r=WunderEconomy.purchase(state,i);if(!r.purchased){if(r.reason==='insufficient')toast(`Dir fehlen noch ${i.price-state.balance} Sterne. Mit der nächsten Aufgabe kommst du näher!`);return}save();if(!homes.some(h=>h.id===id))place(id,true);else renderPanel();chime();toast(`${i.name} gehört jetzt zu deiner Welt!`)}
- if(action==='target'){state.journey.target=id;save();renderPanel();toast('Sparziel gesetzt. Jede Aufgabe bringt dich näher!')}
- if(action==='learn'){$('#panel').close();window.dispatchEvent(new Event('request-learning'))}
+$('#panel-content').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(b.dataset.furnitureTab){furnitureTab=b.dataset.furnitureTab;renderPanel();return}
+ if(action==='buy'){
+  if(!state.journey.starterUnlocked||!LerndachsWorld.shopStock.includes(id))return;
+  const i=item(id);if(current().length>=120){toast('Packe erst etwas ein.');return}
+  const result=WunderEconomy.purchase(state,i);
+  if(!result.purchased){
+   if(result.reason==='insufficient'){state.journey.target=id;if(state.journey.opening==='second-item')state.journey.opening='earn';save();renderPanel();window.dispatchEvent(new Event('opening-changed'))}
+   return;
+  }
+  if(state.journey.target===id)state.journey.target=null;
+  if(state.journey.opening==='shop')state.journey.opening='second-item';
+  save();place(id,true);animate(current().at(-1));chime();toast('Das gehört dir!');window.dispatchEvent(new Event('opening-changed'));
+ }
+ if(action==='learn'){$('#panel').close();window.dispatchEvent(new Event('request-earn-stars'))}
  if(action==='place')place(id);if(action==='restore')restore(id);
  if(action==='visit'){state.home=id;selected=null;current();render();$('#panel').close();centerScene()}
- if(action==='store'){shopTab=homes.some(h=>h.id===id)?'houses':'figures';showPanel('shop')}
+ if(action==='store')showPanel('shop')
  if(action==='tidy'){const home=state.home,old=structuredClone({placed:current(),stored:stored()}),defaults=A.defaults(home);for(const o of [...current(),...stored()]){const d=defaults.find(d=>d.id===o.id);if(d){o.x=d.x;o.y=d.y}delete o.carrier}state.placed[home]=[...current(),...stored()];state.stored[home]=[];selected=null;render();$('#panel').close();toast('Deine vorhandenen Dinge sind aufgeräumt.',()=>{state.placed[home]=old.placed;state.stored[home]=old.stored;if(state.home===home)render();save()})}
  if(action==='fullscreen'){if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>toast('Vollbild ist hier nicht verfügbar.'))}
 });
-function place(id,purchased=false){if(!state.journey.starterUnlocked||!state.owned.includes(id))return;if(!purchased){const bag=stored().find(o=>o.id===id);if(bag){restore(bag.uid);return}const existing=current().find(o=>o.id===id);if(existing){$('#panel').close();focusObject(existing);toast('Das ist schon in deinem Zimmer. Weitere Exemplare gibt es im Laden.');return}const elsewhere=Object.values(state.placed).flat().some(o=>o.id===id)||Object.values(state.stored).flat().some(o=>o.id===id);if(elsewhere){toast('Das steht in einem anderen Zuhause. Besuche es über die Nachbarschaft.');return}}if(chars.has(id)&&current().some(o=>o.id===id))return;if(current().length>=120){toast('Ganz schön voll. Packe zuerst etwas ein.');return}const isPet=item(id)?.kind==='pet',x=(scene.scrollLeft+scene.clientWidth*(isPet?.28:.5))/$('#world').clientWidth*1600,o={uid:uid(),id,x,y:chars.has(id)?790:isPet?815:735,s:1,layer:isPet?4.1:A.layer(id)};current().push(o);renderObjects();save();$('#panel').close();select(o);effect(o)}
+function place(id,purchased=false){if(!state.journey.starterUnlocked||!state.owned.includes(id))return;if(!purchased){const bag=stored().find(o=>o.id===id);if(bag){restore(bag.uid);return}const existing=current().find(o=>o.id===id);if(existing){$('#panel').close();focusObject(existing);toast('Das ist schon in deinem Zimmer. Weitere Exemplare gibt es im Laden.');return}const elsewhere=Object.values(state.placed).flat().some(o=>o.id===id)||Object.values(state.stored).flat().some(o=>o.id===id);if(elsewhere){toast('Das steht in einem anderen Zuhause. Besuche es über die Nachbarschaft.');return}}if(chars.has(id)&&current().some(o=>o.id===id))return;if(current().length>=120){toast('Ganz schön voll. Packe zuerst etwas ein.');return}const isPet=item(id)?.kind==='pet',x=(scene.scrollLeft+scene.clientWidth*(isPet?.28:.5))/$('#world').clientWidth*1600,o={uid:uid(),id,x,y:chars.has(id)?790:isPet?815:['picture','poster'].includes(id)?330:735,s:1,layer:isPet?4.1:A.layer(id)};current().push(o);renderObjects();save();$('#panel').close();select(o);effect(o)}
 function credit(payload){const result=WunderEconomy.credit(state,payload);save();return result}
 window.Lerndachs=Object.freeze({version:3,getSnapshot:()=>structuredClone(state)});
 $('#map-button').onclick=()=>showPanel('map');$('#wallet').onclick=()=>showPanel('rewards');$('#help').onclick=()=>showPanel('help');$('#bag-button').onclick=()=>showPanel('bag');
@@ -304,10 +334,10 @@ window.Lernwelt={snapshot:()=>structuredClone(state),find:id=>current().find(o=>
 window.MeineKleineWelt=window.Lerndachs;
 
 function grantStarter(){
- if(state.journey.starterUnlocked||!state.journey.starterEarned)return false;
- state.journey.starterUnlocked=true;
- for(const o of LerndachsWorld.starterObjects('garden')){if(!state.owned.includes(o.id))state.owned.push(o.id);state.placed.garden.push(o)}
- state.home='garden';render();centerScene();effect({x:800,y:500});window.dispatchEvent(new Event('learning-celebration'));return true;
+ if(state.journey.starterUnlocked)return false;
+ state.journey.starterUnlocked=true;state.journey.starterEarned=true;
+ WunderEconomy.credit(state,{receiptId:'welcome-home',stars:LerndachsWorld.welcomeStars});
+ render();effect({x:800,y:500});window.dispatchEvent(new Event('learning-celebration'));return true;
 }
 function showPet(o){
  selected=o.uid;const i=item(o.id);$('#panel-title').textContent=o.petName||i.name;$('#panel-kicker').textContent='DEIN TIERISCHER FREUND';activePanel='pet';
@@ -317,10 +347,10 @@ function showPet(o){
  $('#save-pet-name').onclick=()=>{const name=$('#pet-name').value.trim();if(name){o.petName=name;save();$('#panel-title').textContent=name;renderObjects();toast('Name gespeichert.')}};
  if(!$('#panel').open)$('#panel').showModal();
 }
-window.LerndachsJourney={get profile(){return state.journey},save,grantStarter,get catalogue(){return allItems},art,preview,showShop(tab='decor'){shopTab=tab;showPanel('shop')},reward(id,stars=15){if(state.journey.done.includes(id))return false;const r=WunderEconomy.credit(state,{receiptId:'task-'+id,stars});if(r.credited){state.journey.done.push(id);if(state.journey.together)state.journey.turn=state.journey.turn===1?2:1}save();return r.credited},focusObject,render};
+window.LerndachsJourney={get profile(){return state.journey},save,grantStarter,get catalogue(){return allItems},art,preview,showShop(){showPanel('shop')},reward(id,stars=15){if(state.journey.done.includes(id))return false;const r=WunderEconomy.credit(state,{receiptId:'task-'+id,stars});if(r.credited){state.journey.done.push(id);if(state.journey.together)state.journey.turn=state.journey.turn===1?2:1}save();return r.credited},focusObject,render};
 // A mission can retrieve already-owned props without granting unearned items.
 function bringOwned(id){
- if(!state.journey.starterUnlocked||!state.owned.includes(id)||current().some(o=>o.id===id))return;
+ if(!state.owned.includes(id)||current().some(o=>o.id===id))return;
  for(const [home,objects] of Object.entries(state.stored)){const index=objects.findIndex(o=>o.id===id);if(index>=0){const [o]=objects.splice(index,1);delete o.carrier;current().push(o);renderObjects();save();return}}
  for(const [home,objects] of Object.entries(state.placed)){if(home===state.home)continue;const index=objects.findIndex(o=>o.id===id);if(index>=0){const [o]=objects.splice(index,1);delete o.carrier;current().push(o);renderObjects();save();return}}
 }
@@ -336,6 +366,7 @@ LerndachsJourney.setTimetable=plan=>{state.timetable=plan;save()};
 
 // Seven sun interactions form one persistent bonus receipt.
 function sunClick(){
+ if(state.journey.opening!=='done'||state.journey.grade===null)return;
  state.journey.sunClicks=(Number.isSafeInteger(state.journey.sunClicks)?state.journey.sunClicks:0)+1;
  if(state.journey.sunClicks%7===0){const r=credit({receiptId:'sun-bonus-'+state.journey.sunClicks/7,stars:250});if(r.credited){toast('Sonnengeheimnis! +250 Sterne für deine Welt.');window.dispatchEvent(new Event('learning-celebration'))}}
  else save();
@@ -373,14 +404,23 @@ function persistAudio(){state.audioSettings={enabled,volume,station,gainVersion:
 function init(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=0;const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=6;limiter.ratio.value=12;limiter.attack.value=.003;limiter.release.value=.15;master.connect(limiter);limiter.connect(ctx.destination);music=ctx.createGain();music.gain.value=.34;music.connect(master)}ctx.resume().catch(()=>{});master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.03)}
 function tone(hz,d=.2,type='sine',gain=.12,delay=0,dest=master){if(!ctx||voices>18)return;voices++;let o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=type;o.frequency.setValueAtTime(Math.max(30,hz),t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain*(dest===music?1.25:2.5),t+.035);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(dest);o.start(t);o.stop(t+d+.02);o.onended=()=>{voices--;o.disconnect();g.disconnect()};return o}
 function noise(d=.2,gain=.1,freq=1200){if(!ctx||voices>18)return;voices++;const n=ctx.createBufferSource(),b=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);n.buffer=b;const f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='lowpass';f.frequency.value=freq;g.gain.value=gain*2;n.connect(f).connect(g).connect(master);n.start();n.onended=()=>{voices--;n.disconnect();f.disconnect();g.disconnect()};return n}
-// Soft, rounded notes replace impact noise on every object interaction.
 function effect(id){if(!enabled)return;init();
- if(id==='counter'){noise(.3,.025,650);return}
- if(['watering','cloud'].includes(id)){noise(.6,.045,650);return}
  if(id==='reward'){[523.25,659.25,783.99,1046.5].forEach((h,i)=>tone(h,.42,'sine',.09,i*.11));return}
+ if(['sofa','bed','cushion','blanket','rug'].includes(id)){tone(147,.2,'triangle',.08);tone(220,.28,'sine',.06,.08);return}
+ if(['plant','flower','hanging','tree','curtain'].includes(id)){noise(.2,.025,1600);tone(740,.18,'sine',.035,.1);return}
+ if(['watering','cloud','counter'].includes(id)){noise(.45,.045,900);[660,880,1100].forEach((h,i)=>tone(h,.12,'sine',.035,i*.1));return}
+ if(['table','stool','shelf','books','basket','drop','tap'].includes(id)){tone(262,.12,'triangle',.09);tone(392,.16,'sine',.035,.055);return}
+ if(['tea','jar','kettle','fishbowl'].includes(id)){tone(1047,.4,'sine',.06);tone(1568,.25,'sine',.025,.035);return}
+ if(['lamp','pendant','fridge','cabinet','fan','clock'].includes(id)){tone(330,.08,'triangle',.07);tone(494,.14,'sine',.05,.07);return}
+ if(id==='camera'){noise(.08,.035,2400);tone(784,.12,'triangle',.035,.1);return}
+ if(id==='cat'){tone(110,.6,'triangle',.025);tone(165,.45,'sine',.04,.12);return}
+ if(id==='dog'){tone(196,.13,'triangle',.08);tone(147,.18,'triangle',.07,.16);return}
+ if(id==='rabbit'){[587,784].forEach((h,i)=>tone(h,.14,'sine',.06,i*.12));return}
+ if(id==='balloon'){[392,523,784].forEach((h,i)=>tone(h,.2,'sine',.055,i*.065));return}
+ if(id==='dachs'){[392,494,587].forEach((h,i)=>tone(h,.18,'triangle',.06,i*.1));return}
  if(id==='guitar'){[196,246.94,293.66,392].forEach((h,i)=>tone(h,.9,'triangle',.07,i*.05));return}
- const pitch=({tea:784,jar:659,fishbowl:784,cat:440,dog:330,rabbit:587,camera:698,clock:880,radio:659,balloon:523,plant:523,flower:587,sun:659})[id]||523.25;
- tone(pitch,.24,'sine',.085);tone(pitch*1.25,.28,'sine',.045,.065);
+ const pitch=({radio:659,sun:659,picture:523,poster:587,cake:880,fruit:698,toaster:440})[id]||523.25;
+ tone(pitch,.24,'sine',.07);tone(pitch*1.25,.28,'sine',.04,.065);
 }
 function tick(){if(!playing||!enabled||document.hidden)return;init();const melodies=[[0,4,7,12,7,4,2,7,5,9,12,9,7,4,2,4],[0,12,7,3,10,7,15,12,0,7,12,15,10,7,3,7],[0,4,7,11,14,11,7,4,2,5,9,12,16,12,9,5]];let base=[196,220,146.83][station],n=melodies[station][step%16],hz=base*2**(n/12);tone(hz,[.7,.18,.45][station],['triangle','triangle','sine'][station],[.09,.035,.12][station],0,music);if(step%4===0)tone(base/2,.65,'sine',.14,0,music);if(station===2&&step%2===0){tone(hz*1.25,.4,'sine',.04,.06,music);tone(hz*1.5,.4,'sine',.04,.06,music)}step++}
 // This single stream belongs to the radio. There is no second ambient soundtrack.
@@ -411,14 +451,13 @@ const dialog=document.createElement('dialog');dialog.id='character-dialog';dialo
 let mode,chosen,personUid,callback;
 function open(next='add',done,who){mode=next;callback=done;personUid=who;const person=J.people().find(p=>p.uid===(who||J.profile.playerUid));chosen=next==='add'||next==='initial'?'milo':person?.id||'milo';
  document.querySelector('#panel').close();document.querySelector('#learning-dialog').close();
- dialog.innerHTML=`<div class="dialog-top"><div><p class="eyebrow">DEINE FIGUR · DEINE GESCHICHTE</p><h2 id="character-title">${next==='initial'?'Wer möchtest du sein?':next==='add'?'Ein neuer Freund':'Deine Figur gestalten'}</h2></div>${next==='initial'?'':'<button class="icon-button" id="close-character" aria-label="Schließen">×</button>'}</div><div class="people-grid">${WorldArt.cast.map(i=>`<button data-person="${i.id}" aria-pressed="${chosen===i.id}">${J.preview(i)}<strong>${esc(i.name)}</strong></button>`).join('')}</div><form id="person-form"><label class="pet-name-label">Name <input id="character-name" required maxlength="24" autocomplete="off" aria-label="Name deiner Figur"></label><button id="confirm-character" class="journey-primary wide">${next==='initial'?'Mein Abenteuer starten':next==='add'?'Freund hinzufügen':'Änderungen speichern'} →</button><p class="note">${next==='initial'?'Du startest mit einer Figur. Weitere Freunde kannst du später hinzufügen.':'Figuren und eigene Namen kosten keine Sterne.'}</p><p id="character-error" role="status"></p></form>`;
+ dialog.innerHTML=`<div class="dialog-top"><div>${next==='initial'?'':'<p class="eyebrow">DEINE FIGUR · DEINE GESCHICHTE</p>'}<h2 id="character-title">${next==='initial'?'Wer zieht hier ein?':next==='add'?'Ein neuer Freund':'Deine Figur gestalten'}</h2></div><button class="icon-button" id="close-character" aria-label="Schließen">×</button></div><div class="people-grid">${(next==='initial'?WorldArt.cast.slice(0,4):WorldArt.cast).map(i=>`<button data-person="${i.id}" aria-pressed="${chosen===i.id}">${J.preview(i)}<strong>${esc(i.name)}</strong></button>`).join('')}</div><form id="person-form"><label class="pet-name-label">Name <input id="character-name" required maxlength="24" autocomplete="off" aria-label="Name deiner Figur"></label><button id="confirm-character" class="journey-primary wide">${next==='initial'?'Einziehen!':next==='add'?'Freund hinzufügen':'Änderungen speichern'} →</button><p class="note">${next==='initial'?'':'Figuren und eigene Namen kosten keine Sterne.'}</p><p id="character-error" role="status"></p></form>`;
  dialog.querySelector('#character-name').value=next==='initial'||next==='add'?WorldArt.names[chosen]:person?.name||WorldArt.names[chosen];
  dialog.querySelectorAll('[data-person]').forEach(b=>b.onclick=()=>{const input=dialog.querySelector('input');if(input.value===WorldArt.names[chosen])input.value=WorldArt.names[b.dataset.person];chosen=b.dataset.person;dialog.querySelectorAll('[data-person]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.person===chosen))});
  dialog.querySelector('#close-character')?.addEventListener('click',()=>dialog.close());
  dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(!J.person(chosen,dialog.querySelector('input').value,mode,personUid)){dialog.querySelector('#character-error').textContent='Bitte wähle einen Namen. In deiner Welt können bis zu 20 Figuren mitspielen.';return}dialog.close();callback?.();window.dispatchEvent(new Event('learning-celebration'))};
  dialog.showModal();
 }
- dialog.addEventListener('cancel',e=>{if(mode==='initial')e.preventDefault()});
 function render(c){c.querySelector('.card-grid')?.remove();c.querySelectorAll('.note,.wide').forEach(e=>e.remove());const body=document.createElement('div');body.innerHTML=`<div class="friends-actions"><button class="journey-primary" data-friend-mode="change">Meine Figur ändern</button><button class="journey-primary" data-friend-mode="add">+ Freund hinzufügen</button></div><div class="card-grid">${J.people().map(o=>`<article class="item-card"><div class="item-art">${J.preview({id:o.id})}</div><div class="item-body"><h3>${esc(o.name)}</h3><p>${o.player?'Das bist du':'Dein Freund'}</p><button data-person-edit="${o.uid}">Figur & Namen ändern</button><button data-person-show="${o.uid}">In meine Welt holen</button></div></article>`).join('')}</div><p class="note">Du entscheidest, wer mitspielt. Namen bleiben auf diesem Gerät gespeichert. Eingepackte Freunde findest du auch in deiner Tasche.</p>`;c.append(body)}
  document.querySelector('#panel-content').addEventListener('click',e=>{const b=e.target.closest('button');if(b?.dataset.friendMode)open(b.dataset.friendMode);if(b?.dataset.personEdit)open(J.profile.playerUid===b.dataset.personEdit?'change':'edit',null,b.dataset.personEdit);if(b?.dataset.personShow)J.showPerson(b.dataset.personShow)});
 window.LerndachsFriends={open,render};
@@ -3226,7 +3265,6 @@ const missions=[
 ];
 for(const task of missions){const path=task[7].type==='garden'?'numbers':task[7].type==='memory'||task[7].goal==='carry'?'words':task[7].goal==='left'?'numbers':'nature';bank.paths.find(p=>p.id===path).items.unshift(task)}
 window.LerndachsGrades={0:{label:'Vorschule',note:'Bilder, kleine Mengen & Entdecken'},1:{label:'Klasse 1',note:'Zählen, erste Wörter & Alltag'},2:{label:'Klasse 2',note:'Rechnen bis 20 & kurze Sätze'},3:{label:'Klasse 3',note:'Rechnen bis 1000 & Texte verstehen'},4:{label:'Klasse 4',note:'Größere Zahlen & Zusammenhänge'}};
-window.LerndachsIntro={0:['Wie viele Umzugskisten siehst du?',['2','3','4'],1,'📦 📦 📦'],1:['2 Kisten stehen schon da. Eine kommt dazu. Wie viele sind es jetzt?',['2','3','4'],1,'📦 📦 + 📦'],2:['8 Bücher und 2 Bücher kommen in dein Regal. Wie viele sind es zusammen?',['9','10','12'],1,'8 + 2 = ?'],3:['30 Bücher und 20 Bücher warten im Umzugswagen. Wie viele sind es zusammen?',['40','50','60'],1,'30 + 20 = ?'],4:['120 Bausteine und 80 Bausteine gehören zum Einzug. Wie viele sind es zusammen?',['180','200','220'],1,'120 + 80 = ?']};
 })();
 
 ;
@@ -3286,12 +3324,12 @@ window.LerndachsEvidence={start,finish,mistake(){if(current)current.errors++},hi
 ;
 /* Lerndachs class-based learning journey and in-world activities. */
 (()=>{
-const badger=`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M18 44Q4 13 30 22L49 30 70 21Q95 11 85 45Q104 94 51 96 0 96 18 44" fill="#787d82" stroke="#38434c" stroke-width="3"/><path d="M25 29 41 43 33 78Q15 65 25 29m49 0L58 43l9 35q19-13 7-49" fill="#fff4d9"/><path d="M42 46h17l9 33q-18 22-36 0Z" fill="#fff4d9"/><ellipse cx="32" cy="55" rx="5" ry="7" fill="#38434c"/><ellipse cx="68" cy="55" rx="5" ry="7" fill="#38434c"/><circle cx="29" cy="53" r="2" fill="white"/><circle cx="66" cy="53" r="2" fill="white"/><path d="M43 73q7-8 14 0l-7 7Z" fill="#38434c"/><path d="M44 86q6 5 12 0" fill="none" stroke="#38434c" stroke-width="2"/><ellipse cx="22" cy="69" rx="8" ry="4" fill="#f28c72"/><ellipse cx="78" cy="69" rx="8" ry="4" fill="#f28c72"/><path d="m70 89 12-6 9 9-11 5Z" fill="#4fbaa8" stroke="#38434c" stroke-width="2"/></svg>`;
+const badger=`<svg viewBox="-55 -110 110 115" aria-hidden="true">${WorldArt.art('dachs')}</svg>`;
 for(const selector of ['.badger-icon','.brand-badger'])document.querySelector(selector).innerHTML=badger;
 const {paths,sources}=LerndachsCurriculum,grades=LerndachsGrades,J=LerndachsJourney,progress=J.profile;
 const dialog=document.querySelector('#learning-dialog'),content=document.querySelector('#learning-content'),strip=document.querySelector('#quest-strip');
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let mode='world',correct=false,pendingGrade=progress.grade,sampleTimer,memoryTimer,memoryCards=[],memoryOpen=[],memoryBusy=false,gardenCount=0,worldAttemptDone=false;
+let mode='world',correct=false,pendingGrade=progress.grade,afterGrade,sampleTimer,memoryTimer,memoryCards=[],memoryOpen=[],memoryBusy=false,gardenCount=0,worldAttemptDone=false;
 const tasksFor=p=>p.items.filter(q=>q[7].grades.includes(progress.grade));
 const active=()=>progress.active==='practice'?{id:'practice',title:'Deine Übungswerkstatt',items:[progress.practiceQuestion],color:'yellow'}:paths.find(p=>p.id===progress.active);
 const currentTasks=()=>progress.active==='practice'?[progress.practiceQuestion]:active()?tasksFor(active()):[];
@@ -3306,35 +3344,25 @@ function close(){cleanup();dialog.close();mode='world';if(progress.active)seek()
 function resetStrip(){strip.hidden=true;document.querySelector('#adventure-button').hidden=false}
 function updateHUD(){
  const g=grades[progress.grade];document.querySelector('#grade-label').textContent=g?g.label:'';
- const b=document.querySelector('#adventure-button');b.querySelector('small').textContent=!progress.starterUnlocked?'DEIN EINZUG WARTET':progress.target?'DEIN SPARZIEL':'SPIEL DICH SCHLAU';
- const target=J.catalogue.find(i=>i.id===progress.target),balance=Lernwelt.snapshot().balance;
- b.querySelector('strong').textContent=!progress.starterUnlocked?progress.starterEarned?'Dein Paket ist da!':'Dein erstes Zuhause':target?target.name:'Ein kleines Abenteuer?';
- b.querySelector('em').textContent=!progress.starterUnlocked?progress.starterEarned?'Jetzt auspacken →':'Eine Aufgabe öffnet dein Einzugspaket →':target?balance>=target.price?'Ziel erreicht · Im Laden holen →':`${balance} / ${target.price} Sterne · noch ${Math.ceil((target.price-balance)/15)} Aufgaben →`:'Mit Dachs die Welt entdecken →';
+ const b=document.querySelector('#adventure-button');b.querySelector('small').textContent='';
+ b.querySelector('strong').textContent='Sterne sammeln';b.querySelector('em').textContent='Ein Rätsel mit Dachs';
 }
 window.addEventListener('world-saved',updateHUD);
-function chooseGrade(){
- cleanup();mode='grades';pendingGrade=progress.grade;document.querySelector('#panel').close();
- content.innerHTML=`<div class="class-intro"><div class="guide-face">${badger}</div><p class="learn-eyebrow">WILLKOMMEN BEI LERNDACHS</p><h2 id="learn-title">Deine Klasse. Dein Abenteuer.</h2><p>Wo lernst du gerade? Ich suche passende Aufgaben für dich aus.</p><div class="class-grid" role="group" aria-label="Klasse auswählen">${Object.entries(grades).map(([id,g])=>`<button data-grade="${id}" aria-pressed="${pendingGrade===Number(id)}"><span>${id==='0'?'✿':id}</span><strong>${g.label}</strong><small>${g.note}</small></button>`).join('')}</div><button id="confirm-grade" class="journey-primary" ${pendingGrade===null?'disabled':''}>${progress.starterUnlocked?'Weiter in meine Welt →':'Mein Abenteuer starten →'}</button><p class="learning-footnote">Du kannst die Klasse später in den Einstellungen ändern. Dein Zuhause und deine Sterne bleiben erhalten.</p></div>`;
- document.querySelector('#learn-close').hidden=progress.grade===null;reveal();
-}
-function starter(){
- if(progress.grade===null){chooseGrade();return}if(!J.player()){cleanup();dialog.close();LerndachsFriends.open('initial',starter);return}if(progress.starterUnlocked){open();return}if(progress.starterEarned){packScreen();return}
- cleanup();mode='intro';correct=false;const q=LerndachsIntro[progress.grade];
- content.innerHTML=`<div class="intro-task"><h2 id="learn-title">Dein erstes Rätsel</h2><p class="task-description">${escape(q[0])}</p><div class="moving-boxes">${q[3]}</div><button id="read-intro" class="task-icon" aria-label="Aufgabe vorlesen" title="Vorlesen">${icon('sound')}</button><div class="answer-grid">${q[1].map((a,i)=>`<button data-intro-answer="${i}">${escape(a)}</button>`).join('')}</div><div id="intro-feedback" role="status"></div></div>`;
+function chooseGrade(next){
+ cleanup();mode='grades';afterGrade=next;pendingGrade=progress.grade;document.querySelector('#panel').close();
+ content.innerHTML=`<div class="class-intro"><div class="guide-face">${badger}</div><h2 id="learn-title">In welche Klasse gehst du?</h2><div class="class-grid" role="group" aria-label="Klasse auswählen">${Object.entries(grades).map(([id,g])=>`<button data-grade="${id}" aria-pressed="${pendingGrade===Number(id)}"><span>${id==='0'?'✿':id}</span><strong>${g.label}</strong></button>`).join('')}</div><button id="confirm-grade" class="journey-primary" ${pendingGrade===null?'disabled':''}>Los geht’s!</button></div>`;
  document.querySelector('#learn-close').hidden=false;reveal();
 }
-function packScreen(){
- cleanup();mode='pack';
- content.innerHTML=`<div class="pack-screen"><p class="learn-eyebrow">DEINE ERSTE AUFGABE IST GELÖST</p><div class="gift-box" aria-hidden="true">✦</div><h2 id="learn-title">Willkommen zu Hause!</h2><p>Dein Einzugspaket enthält 12 Dinge.<br>Eine Hälfte ist gemütlich. Die andere wartet auf deine Ideen.</p><div class="starter-preview">${['sofa','table','plant'].map(id=>`<div>${J.preview(J.catalogue.find(i=>i.id===id))}<span>${WorldArt.names[id]}</span></div>`).join('')}</div><button id="claim-starter" class="journey-primary">Mein Einzugspaket auspacken →</button><p class="learning-footnote">Das Paket gibt es einmal. Weitere Einrichtung und Haustiere erspielst du dir mit Aufgaben.</p></div>`;reveal();
-}
+function starter(){window.dispatchEvent(new Event('request-opening'))}
+
 function targetCard(){const i=J.catalogue.find(i=>i.id===progress.target);if(!i)return '';const balance=Lernwelt.snapshot().balance,remaining=Math.max(0,i.price-balance);return `<div class="target-card"><div class="target-art">${J.preview(i,WorldArt.homes.some(h=>h.id===i.id))}</div><div><small>DEIN NÄCHSTES ZIEL</small><strong>${escape(i.name)}</strong><span>${balance} / ${i.price} Sterne · ${remaining?`noch ${Math.ceil(remaining/15)} neue Aufgaben`:'Du hast genug Sterne!'}</span><progress max="${i.price||1}" value="${Math.min(balance,i.price)}" aria-label="Sterne für dein Sparziel"></progress></div><button id="target-shop">${remaining?'Laden':'Holen'} →</button></div>`}
-function open(){if(!progress.starterUnlocked){starter();return}cleanup();document.querySelector('#panel').close();mode='menu';menu();reveal()}
+function open(){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(true));return}cleanup();document.querySelector('#panel').close();mode='menu';menu();reveal()}
 function menu(){
  cleanup();mode='menu';document.querySelector('#learn-close').hidden=false;
  const eligible=paths.flatMap(tasksFor),n=eligible.filter(finished).length;
- content.innerHTML=`<div class="learn-intro"><div class="guide-face">${badger}</div><p class="learn-eyebrow">LERNDACHS · ${grades[progress.grade].label.toUpperCase()}</p><h2 id="learn-title">Welche Idee wächst heute?</h2><p>Eine neue gelöste Aufgabe bringt 15 Sterne. Daraus werden Möbel, Pflanzen und tierische Freunde.</p><div class="discovery-count">${n} / ${eligible.length} Aufgaben für ${grades[progress.grade].label} entdeckt</div></div>${targetCard()}<div class="journey-options"><button id="together-toggle" aria-pressed="${progress.together}">${progress.together?'✓ Wir spielen zu zweit':'♡ Gemeinsam spielen'}</button></div>${progress.together?'<p class="together-note">Ein Gerät, zwei Ideen: Eine Person spielt, die andere erklärt oder hilft. Nach einer neuen gelösten Aufgabe tauscht ihr die Rollen.</p>':''}<div class="path-grid">${paths.map(p=>{
+ content.innerHTML=`<div class="learn-intro"><div class="guide-face">${badger}</div><p class="learn-eyebrow">LERNDACHS · ${grades[progress.grade].label.toUpperCase()}</p><h2 id="learn-title">Was möchtest du spielen?</h2><p>Für jedes neue Rätsel gibt’s 15 Sterne.</p><div class="discovery-count">${n} / ${eligible.length} Aufgaben für ${grades[progress.grade].label} entdeckt</div></div>${targetCard()}<div class="journey-options"><button id="together-toggle" aria-pressed="${progress.together}">${progress.together?'✓ Wir spielen zu zweit':'♡ Gemeinsam spielen'}</button></div>${progress.together?'<p class="together-note">Ein Gerät, zwei Ideen: Eine Person spielt, die andere erklärt oder hilft. Nach einer neuen gelösten Aufgabe tauscht ihr die Rollen.</p>':''}<div class="path-grid">${paths.map(p=>{
  const tasks=tasksFor(p),count=tasks.filter(finished).length;return `<button class="learning-path ${p.color}" data-path="${p.id}"><span class="path-symbol">${p.icon}</span><small>${p.tag}</small><strong>${p.title}</strong><span>${p.desc}</span><div class="path-dots">${Array.from({length:tasks.length},(_,i)=>`<i class="${i<count?'done':''}"></i>`).join('')}<b>${count}/${tasks.length}</b></div><em>${count===tasks.length?'Noch mal entdecken ↗':'Los geht’s →'}</em></button>`;
- }).join('')}</div><button id="start-practice" class="practice-button">✦ Übungswerkstatt · neue Rechenaufgabe</button><div class="badge-row">${[[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']].map(([count,title])=>`<span class="${progress.done.length>=count?'earned':''}">${progress.done.length>=count?'✦':'◇'} ${title}</span>`).join('')}</div><p class="learning-footnote">Ohne Zeitdruck. Tipps und neue Versuche sind willkommen.<br>Bereits gelöste Aufgaben geben keine zusätzlichen Sterne.</p><button id="curriculum-info" class="curriculum-link">Für Erwachsene: Lernziele & Spielkonzept ↗</button>`;
+ }).join('')}</div><button id="start-practice" class="practice-button">✦ Übungswerkstatt · neue Rechenaufgabe</button><div class="badge-row">${[[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']].map(([count,title])=>`<span class="${progress.done.length>=count?'earned':''}">${progress.done.length>=count?'✦':'◇'} ${title}</span>`).join('')}</div><p class="learning-footnote">Du darfst dir Zeit lassen und Hilfe holen.</p><button id="curriculum-info" class="curriculum-link">Für Erwachsene: Lernziele & Spielkonzept ↗</button>`;
 }
 function begin(id){progress.active=id;const tasks=currentTasks(),index=tasks.findIndex(q=>!finished(q));progress.index=index<0?0:index;progress.worldMoves=[];worldAttemptDone=false;persist();question()}
 function seek(){
@@ -3349,7 +3377,7 @@ function seek(){
 function prepareMission(q){if(q[7].goal==='carry'&&J.player())J.showPerson(J.player().uid);const need=({carry:[J.player()?.id,'tea'],water:['plant','watering'],left:['table','stool'],night:['sun']})[q[7].goal]||[];for(const id of need)J.bring(id);J.prepare(q[7].goal);Lernwelt.focus(q[0])}
 function taskText(q,text){return q[7].goal==='carry'?text.replaceAll('Milo',J.player()?.characterName||WorldArt.names[J.player()?.id]||'deine Figur'):text}
 function commonQuestion(q){const meta=q[7],visual=q[6].length<=32&&!/[a-zäöüß]/.test(q[6]);return `<div class="task-copy"><h2 id="learn-title">${escape(taskText(q,q[1]))}</h2><p class="task-description">${escape(taskText(q,q[2]))}</p></div><div class="task-tools"><button id="read-question" class="task-icon" aria-label="Aufgabe vorlesen" title="Vorlesen">${icon('sound')}</button><button id="task-hint" class="task-icon" aria-label="Tipp anzeigen" title="Tipp anzeigen" aria-expanded="false">💡</button>${meta.audio?'<button id="play-sample" class="sample-button">▶ Anhören</button>':''}</div>${visual&&meta.type==='choice'?`<div class="task-visual" aria-hidden="true">${escape(q[6])}</div>`:''}<div id="task-hint-text" class="task-hint" hidden>${escape(meta.hint)}</div>`}
-function footer(){return '<div id="answer-feedback" role="status" aria-live="polite"></div><div class="question-actions"><button id="question-back">← Zur Welt</button><button id="skip-question">Später</button><button id="next-question" hidden>Weiter →</button></div>'}
+function footer(){return '<div id="answer-feedback" role="status" aria-live="polite"></div><div class="question-actions"><button id="question-back">← Zur Welt</button><button id="skip-question">Später</button><button id="reward-shop" hidden>Zum Laden</button><button id="next-question" hidden>Weiter →</button></div>'}
 function question(){
  const q=currentTask();if(!q)return;document.querySelector('#panel').close();cleanup();mode='question';correct=false;worldAttemptDone=false;window.LerndachsEvidence?.start(q,progress.active);document.querySelector('#learn-close').hidden=false;
  let interaction='';
@@ -3364,6 +3392,8 @@ function question(){
 function success(q){
  if(correct)return;correct=true;stopSample();window.LerndachsEvidence?.finish(q);window.dispatchEvent(new Event('learning-celebration'));const already=finished(q);J.reward(taskKey(q));if(!already)window.dispatchEvent(new Event('character-celebrate'));
  const feedback=document.querySelector('#answer-feedback');feedback.classList.add('correct-feedback');feedback.textContent=already?'Geschafft!':'Geschafft! +15 Sterne';
+ const target=J.catalogue.find(i=>i.id===progress.target);
+ document.querySelector('#reward-shop').hidden=!target||Lernwelt.snapshot().balance<target.price;
  document.querySelector('#next-question').hidden=false;document.querySelector('#skip-question').hidden=true;content.querySelectorAll('[data-answer],#check-garden,#enter-world-task').forEach(b=>b.disabled=true);WorldSound.effect('reward');
  for(const [n,name] of [[1,'Erster Schritt'],[5,'Ideensammler'],[20,'Weltgestalter'],[50,'Entdeckerprofi']])if(progress.done.length>=n&&!progress.badges.includes(name))progress.badges.push(name);persist();window.dispatchEvent(new CustomEvent('learning-success',{detail:{subject:active()?.subject||'math'}}));
 }
@@ -3404,19 +3434,17 @@ function newPractice(){
  progress.active='practice';progress.index=0;persist();question();
 }
 function curriculumInfo(){
- cleanup();mode='source';content.innerHTML=`<div class="curriculum-info"><p class="learn-eyebrow">LERNDACHS · FÜR ERWACHSENE</p><h2 id="learn-title">Lernen hat hier einen Platz.</h2><p>Die Klassenauswahl filtert die Aufgaben. Vorschule und Klasse 1 nutzen kleine Mengen, erste Wörter und alltägliches Entdecken. Klasse 2 erweitert Rechnen und Lesen. Für Klasse 3 und 4 kommen größere Zahlen, Textverständnis und begründete Zusammenhänge hinzu. Dies ist eine Auswahl aus den bereitgestellten Lehrplänen, keine vollständige Abdeckung und keine automatische Diagnose.</p><p>Das Einzugspaket folgt auf eine erste einfache Aufgabe. Neue Lösungen bringen je 15 Sterne. Möbel kosten 20–140 Sterne, Haustiere 300–450 Sterne. Tipps, Wiederholungen und Auslassen kosten nichts. Haustiere verlieren nichts durch Pausen; es gibt keine Ranglisten oder Zeitstrafen.</p><p>Mitmachaufgaben, ein Mengenbeet, Wörter-Memory und freies Einrichten ergänzen die Wissensfragen. Im lokalen Partner-Modus wechseln zwei Personen am selben Gerät die Rollen Spielen und Erklären. Das ersetzt keine echte Lerngruppe.</p>${paths.map(p=>{const s=sources[p.subject];return `<details><summary>${s.title}</summary><p>${escape(s.file)} · Fassung ${s.edition}<br>${escape(s.sections)}<br>Die Aufgaben führen ihre Lernziele und PDF-Seiten im Aufgabenkatalog mit.</p></details>`}).join('')}<p class="source-note">Alle Aufgaben sind eigene Formulierungen. Die PDFs bleiben lokal. Alte Prototyp-Spielstände unter den bisherigen Speicherschlüsseln werden nicht überschrieben. Die neue Lernreise nutzt einen getrennten Spielstand.</p><button id="finish-menu" class="sample-button">← Zu den Abenteuern</button></div>`;dialog.scrollTop=0;
+ cleanup();mode='source';content.innerHTML=`<div class="curriculum-info"><p class="learn-eyebrow">LERNDACHS · FÜR ERWACHSENE</p><h2 id="learn-title">Lernen hat hier einen Platz.</h2><p>Die Klassenauswahl filtert die Aufgaben. Vorschule und Klasse 1 nutzen kleine Mengen, erste Wörter und alltägliches Entdecken. Klasse 2 erweitert Rechnen und Lesen. Für Klasse 3 und 4 kommen größere Zahlen, Textverständnis und begründete Zusammenhänge hinzu. Dies ist eine Auswahl aus den bereitgestellten Lehrplänen, keine vollständige Abdeckung und keine automatische Diagnose.</p><p>Kinder erkunden zuerst das eingerichtete Zimmer. Beim Einzug bekommen sie 35 Sterne für ihren ersten Einkauf. Neue Lösungen bringen je 15 Sterne. Der kleine Laden bietet zunächst drei Dinge. Tipps und neue Versuche sind erlaubt. Bereits gelöste Rätsel bringen keine weiteren Sterne.</p><p>Mitmachaufgaben, ein Mengenbeet, Wörter-Memory und freies Einrichten ergänzen die Wissensfragen. Im lokalen Partner-Modus wechseln zwei Personen am selben Gerät die Rollen Spielen und Erklären. Das ersetzt keine echte Lerngruppe.</p>${paths.map(p=>{const s=sources[p.subject];return `<details><summary>${s.title}</summary><p>${escape(s.file)} · Fassung ${s.edition}<br>${escape(s.sections)}<br>Die Aufgaben führen ihre Lernziele und PDF-Seiten im Aufgabenkatalog mit.</p></details>`}).join('')}<p class="source-note">Alle Aufgaben sind eigene Formulierungen. Die PDFs bleiben lokal. Alte Prototyp-Spielstände unter den bisherigen Speicherschlüsseln werden nicht überschrieben. Die neue Lernreise nutzt einen getrennten Spielstand.</p><button id="finish-menu" class="sample-button">← Zu den Abenteuern</button></div>`;dialog.scrollTop=0;
 }
 content.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.grade!==undefined){pendingGrade=Number(b.dataset.grade);content.querySelectorAll('[data-grade]').forEach(btn=>btn.setAttribute('aria-pressed',Number(btn.dataset.grade)===pendingGrade));document.querySelector('#confirm-grade').disabled=false}
- else if(b.id==='confirm-grade'){if(pendingGrade===null)return;if(progress.grade!==pendingGrade){progress.active=null;progress.index=0;resetStrip()}progress.grade=pendingGrade;persist();document.querySelector('#learn-close').hidden=false;close();if(!progress.starterUnlocked)starter()}
- else if(b.dataset.introAnswer!==undefined){if(correct)return;const q=LerndachsIntro[progress.grade];if(Number(b.dataset.introAnswer)===q[2]){correct=true;window.dispatchEvent(new Event('learning-celebration'));progress.starterEarned=true;persist();WorldSound.effect('reward');packScreen()}else{b.disabled=true;b.classList.add('try-again');document.querySelector('#intro-feedback').textContent='Versuch es noch einmal.'}}
- else if(b.id==='claim-starter'){if(J.grantStarter()){close();resetStrip();toast('12 Dinge ausgepackt. Dein Zuhause wächst jetzt mit deinen Ideen!')}}
+ else if(b.id==='confirm-grade'){if(pendingGrade===null)return;if(progress.grade!==pendingGrade){progress.active=null;progress.index=0;resetStrip()}progress.grade=pendingGrade;const next=afterGrade;afterGrade=null;persist();close();next?.()}
  else if(b.dataset.path)begin(b.dataset.path);
  else if(b.dataset.answer!==undefined)answer(Number(b.dataset.answer));
  else if(b.dataset.memory!==undefined)memoryFlip(Number(b.dataset.memory));
  else if(b.id==='together-toggle'){progress.together=!progress.together;persist();menu()}
- else if(b.id==='target-shop'||b.id==='finish-shop'){close();const t=J.catalogue.find(i=>i.id===progress.target);J.showShop(t?.kind==='pet'?'pets':'decor')}
+ else if(b.id==='target-shop'||b.id==='finish-shop'||b.id==='reward-shop'){close();J.showShop()}
  else if(b.id==='start-practice')newPractice();
  else if(b.id==='enter-world-task'){prepareMission(currentTask());close();toast(currentTask()[2])}
  else if(b.id==='garden-add'&&!correct){gardenCount=Math.min(24,gardenCount+1);renderGarden()}
@@ -3428,7 +3456,7 @@ content.addEventListener('click',e=>{
  else if(b.id==='curriculum-info')curriculumInfo();
  else if(b.id==='task-hint'){window.LerndachsEvidence?.hint();const hint=document.querySelector('#task-hint-text');hint.hidden=!hint.hidden;b.setAttribute('aria-expanded',!hint.hidden)}
  else if(b.id==='play-sample'){stopSample();const duration=WorldSound.playSample(currentTask()[7].audio);b.textContent='♫ Hör gut hin …';sampleTimer=setTimeout(()=>{if(b.isConnected)b.textContent='↻ Noch einmal hören'},duration+100)}
- else if(b.id==='read-question'||b.id==='read-intro'){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const q=b.id==='read-intro'?LerndachsIntro[progress.grade]:currentTask(),text=b.id==='read-intro'?q[0]+'. '+q[1].join('. '):q[2]+'. '+q[3].join('. ');const u=new SpeechSynthesisUtterance(text);u.lang='de-DE';u.rate=.85;speechSynthesis.speak(u)}
+ else if(b.id==='read-question'){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const q=currentTask(),u=new SpeechSynthesisUtterance(taskText(q,q[2])+'. '+q[3].join('. '));u.lang='de-DE';u.rate=.85;speechSynthesis.speak(u)}
 });
 function completeWorld(q){if(worldAttemptDone)return;worldAttemptDone=true;question();worldAttemptDone=true;success(q)}
 window.addEventListener('world-move',()=>{
@@ -3445,13 +3473,13 @@ window.addEventListener('world-use',e=>{
  }else if(mode==='world'&&q[0]===e.detail.id){const id=taskKey(q);setTimeout(()=>{if(currentTask()&&taskKey(currentTask())===id)question()},180)}
 });
 document.querySelector('#learn-close').onclick=close;
-dialog.addEventListener('cancel',e=>{if(progress.grade===null)e.preventDefault()});
 dialog.addEventListener('close',cleanup);
-window.addEventListener('request-grade-settings',chooseGrade);
-document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=false;persist();if(!progress.starterUnlocked)starter();else if(currentTask())question();else Learning.nextFresh(true)};document.querySelector('#learn-button').onclick=open;
+window.addEventListener('request-grade-settings',()=>chooseGrade());
+document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=false;persist();if(!progress.starterUnlocked||progress.opening!=='done')starter();else if(currentTask())question();else Learning.nextFresh(true)};document.querySelector('#learn-button').onclick=open;
 window.addEventListener('request-starter',starter);window.addEventListener('request-learning',open);
-window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(p)begin(p.id)},nextFresh(manual=false){if(!progress.starterUnlocked)return;const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();if(manual)return;const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
-updateHUD();if(!Number.isInteger(progress.grade)||!grades[progress.grade]){progress.grade=null;chooseGrade()}else if(!progress.starterUnlocked)starter();else if(progress.active)seek();
+window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(p){if(progress.grade===null)chooseGrade(()=>begin(p.id));else begin(p.id)}},nextFresh(manual=false){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(manual));return}const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();if(manual)return;const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
+if(!Number.isInteger(progress.grade)||!grades[progress.grade]){progress.grade=null;progress.active=null}
+updateHUD();if(progress.starterUnlocked&&progress.active)seek();
 })();
 
 ;
@@ -3631,7 +3659,7 @@ p.playSincePrompt=Number.isFinite(p.playSincePrompt)?Math.max(0,Math.min(interva
 function save(){J.save();lastSave=performance.now()}
 function tick(){
  const now=performance.now(),elapsed=Math.max(0,Math.min(5000,now-last));last=now;
- if(document.hidden||!p.starterUnlocked)return;
+ if(document.hidden||!p.starterUnlocked||p.grade===null||p.opening!=='done')return;
  const busy=!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
  if(!busy)p.playSincePrompt=Math.min(interval,p.playSincePrompt+elapsed);
  if(p.playSincePrompt>=interval&&!busy){p.playSincePrompt=0;p.taskWaiting=true;save();window.dispatchEvent(new Event('task-waiting'))}
@@ -3685,6 +3713,62 @@ button.onclick=open;window.LerndachsSeason={art,sync,open};sync();
 /* The world has one quiet invitation: a badger head, with no floating action tray. */
 (()=>{
 const head=document.querySelector('#adventure-button');head.title='Eine neue Aufgabe entdecken';
-function refresh(){head.hidden=false;const waiting=!document.querySelector('#learning-dialog').open;head.classList.toggle('has-task',waiting);const q=Learning.currentTask;head.setAttribute('aria-label',q?'Aufgabe anzeigen: '+q[1]:'Nächste Aufgabe entdecken')}
+function refresh(){head.hidden=LerndachsJourney.profile.opening!=='done';const waiting=!document.querySelector('#learning-dialog').open;head.classList.toggle('has-task',waiting);const q=Learning.currentTask;head.setAttribute('aria-label',q?'Aufgabe anzeigen: '+q[1]:'Nächste Aufgabe entdecken')}
 window.addEventListener('world-saved',refresh);window.addEventListener('task-waiting',refresh);document.querySelector('#learning-dialog').addEventListener('close',refresh);refresh();
+})();
+
+;
+(()=>{
+const J=LerndachsJourney,p=J.profile,guide=document.querySelector('#room-guide');
+const lines={explore:'Schau dich um. Fass alles an!',couch:'Findest du das Sofa?',dachs:'Wo steckt Dachs?', 'move-in':'Gefunden! Wer zieht hier ein?',shop:'Willkommen! Such dir etwas aus.','second-item':'Was gefällt dir noch?',earn:'Für ein Rätsel gibt’s Sterne. Machst du mit?'};
+function show(){
+ document.body.dataset.opening=p.opening;
+ guide.hidden=p.opening==='done';
+ if(guide.hidden)return;
+ document.querySelector('#room-guide-text').textContent=lines[p.opening];
+ const action=document.querySelector('#room-guide-action');
+ action.hidden=['explore','dachs'].includes(p.opening);
+ action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich!':p.opening==='earn'?'Sterne sammeln':'Zum Laden';
+ document.querySelector('#room-guide-read').hidden=!('speechSynthesis'in window);
+}
+function moveIn(){
+ p.opening='shop';J.grantStarter();show();
+}
+function startLearning(){
+ if(p.opening==='earn'||p.opening==='done'){
+  p.opening='done';J.save();show();Learning.nextFresh(true);
+ }else show();
+}
+function hideBehindSofa(){
+ const sofa=Lernwelt.find('sofa'),dachs=Lernwelt.find('dachs');
+ if(sofa&&dachs){dachs.x=sofa.x+110*(sofa.s||1);dachs.y=sofa.y-130*(sofa.s||1);dachs.layer=2.9;J.render()}
+}
+function explore(id){
+ if(p.opening==='explore'){
+  p.openingTouches=(p.openingTouches||0)+1;
+  if(p.openingTouches>=3){p.opening='couch';J.bring('sofa')}
+ }else if(p.opening==='couch'&&id==='sofa'){
+  p.opening='dachs';hideBehindSofa();WorldSound.effect('dachs');
+ }else if(p.opening==='dachs'&&id==='dachs'){
+  p.opening='move-in';const dachs=Lernwelt.find('dachs');dachs.x+=100;dachs.y+=100;dachs.layer=3.5;J.render();WorldSound.effect('reward');
+ }else return;
+ J.save();show();
+}
+document.querySelector('#room-guide-action').onclick=()=>{
+ if(p.opening==='couch'){J.bring('sofa');Lernwelt.focus('sofa')}
+ else if(p.opening==='move-in'){if(J.player())moveIn();else LerndachsFriends.open('initial',moveIn)}
+ else if(p.opening==='earn')startLearning();
+ else J.showShop();
+};
+document.querySelector('#room-guide-read').onclick=()=>{
+ speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(lines[p.opening]);speech.lang='de-DE';speech.rate=.85;speechSynthesis.speak(speech);
+};
+window.addEventListener('world-use',e=>setTimeout(()=>explore(e.detail.id),220));
+window.addEventListener('world-move',e=>{if(['explore','couch','dachs'].includes(p.opening)&&e.detail.id==='sofa')hideBehindSofa();explore(e.detail.id)});
+window.addEventListener('world-touch',()=>explore());
+window.addEventListener('request-opening',show);
+window.addEventListener('request-earn-stars',startLearning);
+window.addEventListener('opening-changed',show);
+document.querySelector('#welcome-hint').hidden=true;
+show();
 })();

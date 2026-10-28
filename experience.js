@@ -6,7 +6,7 @@ p.playSincePrompt=Number.isFinite(p.playSincePrompt)?Math.max(0,Math.min(interva
 function save(){J.save();lastSave=performance.now()}
 function tick(){
  const now=performance.now(),elapsed=Math.max(0,Math.min(5000,now-last));last=now;
- if(document.hidden||!p.starterUnlocked)return;
+ if(document.hidden||!p.starterUnlocked||p.grade===null||p.opening!=='done')return;
  const busy=!!document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging');
  if(!busy)p.playSincePrompt=Math.min(interval,p.playSincePrompt+elapsed);
  if(p.playSincePrompt>=interval&&!busy){p.playSincePrompt=0;p.taskWaiting=true;save();window.dispatchEvent(new Event('task-waiting'))}
