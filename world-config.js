@@ -17,9 +17,9 @@ function petArt(id){
  if(id==='fishbowl')return `${E(0,2,90,9,'#38434c20')}${R(-88,-100,176,99,'#c7edf2',13)}${R(-82,-85,164,77,C.blue,8,'none')}${P('M-80-15q18-12 38 0t40 0 40 0 40 0v13H-80Z',C.light,'none')}${P('M-62-15q-18-40 0-55m4 54q23-31 2-43','none',C.leaf,5)}${G(`${E(20,-47,23,13,C.orange,C.ink,2)}${P('M0-47l-17-11v22Z',C.orange,C.ink,2)}${E(31,-50,3,3,C.ink)}`,'fish-swim')}${G(`${E(52,-64,4,4,'none',C.white,2)}${E(43,-78,3,3,'none',C.white,2)}`,'bubbles')}${R(-93,-106,186,13,C.teal,5)}`;
  return '';
 }
-function empty(home='garden'){return [...A.defaults(home).filter(o=>environment.has(o.id)),{uid:'welcome-radio-'+home,id:'radio',x:1180,y:790,s:.8,layer:3.6,on:true}]}
+function empty(home='garden'){return [...A.defaults(home).filter(o=>environment.has(o.id)),{uid:'welcome-radio-'+home,id:'radio',x:1180,y:790,s:.8,layer:3.6,on:false}]}
 const starter=['sofa','rug','table','stool','plant','counter','shelf','books','tea','cushion','blanket','watering'];
 function starterObjects(home='garden'){return starter.map(id=>{const entries=A.defaults(home).filter(o=>o.id===id);const o=id==='plant'?entries.find(o=>o.x>1000):entries[0];return {...o,uid:'starter-'+home+'-'+id}})}
-A.names.dachs='Dachs';A.bounds.dachs=[-55,-110,110,115];
+A.names.dachs='Dachs';A.bounds.dachs=[-80,-235,165,250];
 window.LerndachsWorld={environment,pets,petArt,empty,starter,starterObjects,shopStock:['balloon','flower','picture'],welcomeStars:35,taskReward:15};
 })();

@@ -18,9 +18,11 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
  prototype.close=function(){if(this.open){this.removeAttribute('open');this.dispatchEvent(new window.Event('close'))}};
  prototype.scrollTo=function({left}){this.scrollLeft=left};
  prototype.scrollBy=function({left}){this.scrollLeft+=left};
+ window.Element.prototype.setPointerCapture=function(){};
  const scene=document.querySelector('#scene-scroll');scene.scrollLeft=0;
  Object.defineProperty(scene,'clientWidth',{value:800});Object.defineProperty(scene,'scrollWidth',{value:1600});
  Object.defineProperty(document.querySelector('#world'),'clientWidth',{value:1600});
+ document.querySelector('#world').getScreenCTM=()=>({inverse:()=>({})});
  function audioNode(){
   const parameter={setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){},setTargetAtTime(){}};
   return {frequency:{...parameter,setValueAtTime(value){notes.push(value)}},gain:parameter,threshold:{},knee:{},ratio:{},attack:{},release:{},connect(node){return node},disconnect(){},start(){},stop(){schedule(()=>this.onended?.())}};
@@ -38,6 +40,7 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
  }
  const events=new window.EventTarget();
  const context={document,console,crypto,structuredClone,AudioContext,Event:window.Event,CustomEvent:window.CustomEvent,
+  DOMPoint:class{constructor(x,y){this.x=x;this.y=y}matrixTransform(){return this}},
   navigator:{},location:{protocol:'http:'},performance:{now:()=>now},innerWidth:800,
   localStorage:{getItem:()=>stored,setItem:(key,value)=>{stored=value}},
   matchMedia:()=>({matches:reducedMotion}),
@@ -59,15 +62,19 @@ function loadGame(saved,{realAudio=false,reducedMotion=false}={}){
  };
  const click=selector=>{const button=document.querySelector(selector);assert.ok(button,`Missing button: ${selector}`);button.click()};
  return {context,document,advance,click,notes,snapshot:()=>context.Lernwelt.snapshot(),saved:()=>JSON.parse(stored),
+  pointer(type,x,y,selector){const event=new context.Event(type,{bubbles:true,cancelable:true});Object.assign(event,{clientX:x,clientY:y,pointerId:1,button:0});if(selector)document.querySelector(selector).dispatchEvent(event);else context.dispatchEvent(event)},
   tap(id){context.Lernwelt.use(id);advance(250)}};
 }
 
 function exploreAndMoveIn(game){
  const {context,document,click}=game;
+ assert.ok(document.querySelector('[data-kind="dachs"] .badger-curled'));
  game.tap('tea');game.tap('books');game.tap('plant');
  assert.equal(context.LerndachsJourney.profile.opening,'couch');
  game.tap('sofa');assert.equal(context.LerndachsJourney.profile.opening,'dachs');
  game.tap('dachs');assert.equal(context.LerndachsJourney.profile.opening,'move-in');
+ assert.ok(document.querySelector('[data-kind="dachs"] .badger-standing'));
+ assert.equal(context.Lernwelt.find('dachs').y,790);
  assert.equal(document.querySelectorAll('dialog[open]').length,0);
  click('#room-guide-action');
  assert.equal(document.querySelector('#character-dialog').open,true);
@@ -162,4 +169,60 @@ test('soft furnishings and plants have different sounds, and mute is respected',
  context.WorldSound.effect('plant');const plant=notes.slice();
  assert.ok(sofa.length>0);assert.ok(plant.length>0);assert.notDeepEqual(sofa,plant);
  game.click('#sound-toggle');notes.length=0;context.WorldSound.effect('sofa');assert.equal(notes.length,0);
+});
+
+test('radio starts off, toggles, and stays off through other sounds and music samples',()=>{
+ const game=loadGame(undefined,{realAudio:true}),{context}=game;
+ assert.equal(context.Lernwelt.find('radio').on,false);assert.equal(context.WorldSound.status.playing,false);
+ game.tap('books');assert.equal(context.WorldSound.status.playing,false);
+ game.tap('radio');assert.equal(context.Lernwelt.find('radio').on,true);assert.equal(context.WorldSound.status.playing,true);
+ game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,false);
+ game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,true);
+ game.tap('radio');assert.equal(context.Lernwelt.find('radio').on,false);assert.equal(context.WorldSound.status.playing,false);
+ context.LerndachsJourney.render();assert.equal(context.WorldSound.status.playing,false);
+ context.WorldSound.playSample({notes:[[440,.1,.04,0]]});game.advance(500);
+ assert.equal(context.WorldSound.status.playing,false);
+ assert.equal(loadGame(game.saved(),{realAudio:true}).context.Lernwelt.find('radio').on,false);
+});
+
+test('a quick sofa tap keeps cushions above it; only a hold enables dragging',()=>{
+ const game=loadGame(),{context,document,pointer,advance}=game,selector='[data-kind="sofa"]';
+ const order=()=>Array.from(document.querySelector('#objects').children,node=>node.dataset.uid);
+ const originalOrder=order(),sofa=context.Lernwelt.find('sofa'),start={x:sofa.x,y:sofa.y};
+ pointer('pointerdown',start.x,start.y,selector);advance(100);
+ assert.deepEqual(order(),originalOrder);assert.equal(document.body.classList.contains('is-dragging'),false);
+ pointer('pointermove',start.x+2,start.y+2);pointer('pointerup',start.x+2,start.y+2);
+ assert.equal(sofa.x,start.x);assert.equal(sofa.y,start.y);assert.deepEqual(order(),originalOrder);
+ pointer('pointerdown',start.x,start.y,selector);context.LerndachsJourney.render();advance(330);
+ assert.equal(document.body.classList.contains('is-dragging'),true);
+ pointer('pointermove',start.x+60,start.y+30);pointer('pointerup',start.x+60,start.y+30);
+ assert.equal(sofa.x,start.x+60);assert.equal(sofa.y,start.y+30);
+ assert.equal(document.body.classList.contains('is-dragging'),false);
+});
+
+test('moving before the hold and cancelling a pickup do not move the sofa',()=>{
+ const game=loadGame(),{context,pointer,advance}=game,selector='[data-kind="sofa"]';
+ const sofa=context.Lernwelt.find('sofa'),start={x:sofa.x,y:sofa.y};
+ pointer('pointerdown',start.x,start.y,selector);pointer('pointermove',start.x+30,start.y);advance(400);pointer('pointerup',start.x+30,start.y);
+ assert.equal(sofa.x,start.x);assert.equal(sofa.y,start.y);
+ pointer('pointerdown',start.x,start.y,selector);advance(330);pointer('pointermove',start.x+80,start.y+20);pointer('pointercancel',start.x+80,start.y+20);
+ assert.equal(sofa.x,start.x);assert.equal(sofa.y,start.y);
+});
+
+test('celebrations vary, stay above dialogs, clean up, and respect reduced motion',()=>{
+ const game=loadGame(),{context,document,advance}=game,kinds=[];
+ let previous;
+ for(let i=0;i<3;i++){
+  context.dispatchEvent(new context.Event('learning-celebration'));
+  const layer=document.querySelector('#learning-confetti');kinds.push(layer.className);
+  assert.ok(layer.children.length>0);if(previous)assert.equal(previous.isConnected,false);previous=layer;
+ }
+ assert.equal(new Set(kinds).size,3);
+ const dialog=document.querySelector('#panel');dialog.showModal();
+ context.dispatchEvent(new context.CustomEvent('learning-celebration',{detail:{kind:'stars'}}));
+ assert.equal(document.querySelector('#learning-confetti').parentElement,dialog);
+ advance(3700);assert.equal(document.querySelector('#learning-confetti'),null);
+ const quiet=loadGame(undefined,{reducedMotion:true});quiet.context.dispatchEvent(new quiet.context.Event('learning-celebration'));
+ const layer=quiet.document.querySelector('#learning-confetti');assert.ok(layer.classList.contains('quiet-celebration'));assert.equal(layer.children.length,12);
+ quiet.advance(1400);assert.equal(quiet.document.querySelector('#learning-confetti'),null);
 });

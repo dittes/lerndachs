@@ -1,6 +1,6 @@
 /* Lerndachs class-based learning journey and in-world activities. */
 (()=>{
-const badger=`<svg viewBox="-55 -110 110 115" aria-hidden="true">${WorldArt.art('dachs')}</svg>`;
+const badger=`<svg viewBox="-76 -139 152 145" aria-hidden="true">${WorldArt.badger('portrait')}</svg>`;
 for(const selector of ['.badger-icon','.brand-badger'])document.querySelector(selector).innerHTML=badger;
 const {paths,sources}=LerndachsCurriculum,grades=LerndachsGrades,J=LerndachsJourney,progress=J.profile;
 const dialog=document.querySelector('#learning-dialog'),content=document.querySelector('#learning-content'),strip=document.querySelector('#quest-strip');

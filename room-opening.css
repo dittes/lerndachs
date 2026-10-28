@@ -25,7 +25,12 @@ body:is([data-opening="explore"],[data-opening="couch"],[data-opening="dachs"]) 
 #world .reacting:is([data-kind="plant"],[data-kind="flower"],[data-kind="hanging"],[data-kind="tree"],[data-kind="curtain"]) .sprite{animation:room-rustle .7s ease}
 #world .reacting:is([data-kind="books"],[data-kind="shelf"],[data-kind="picture"],[data-kind="poster"],[data-kind="tea"],[data-kind="jar"]) .sprite{animation:room-wiggle .65s ease}
 #world .reacting[data-kind="balloon"] .sprite{animation:room-float .8s ease}
+#world [data-kind="radio"][data-on="true"]:not(.reacting) .sprite{transform-box:fill-box;transform-origin:center bottom;animation:radio-bop 1.2s ease-in-out infinite}
+#world [data-kind="radio"][data-on="true"] .radio-light{filter:drop-shadow(0 0 4px #ffe07e)}
+#world [data-kind="dachs"][data-pose="standing"]:not(.reacting) .badger-wave{transform-origin:34px -91px;animation:badger-wave 4.5s ease-in-out infinite}
 #world .person.reacting .sprite{animation:room-hop .65s ease!important}
+@keyframes radio-bop{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1deg) translateY(-2px)}}
+@keyframes badger-wave{0%,65%,100%{transform:rotate(0)}72%,88%{transform:rotate(13deg)}80%,94%{transform:rotate(-7deg)}}
 @keyframes room-squish{0%,100%{transform:scale(1)}22%{transform:scale(1.08,.87)}48%{transform:scale(.97,1.06)}72%{transform:scale(1.02,.98)}}
 @keyframes room-rustle{0%,100%{transform:rotate(0)}20%{transform:rotate(-7deg)}45%{transform:rotate(6deg)}70%{transform:rotate(-3deg)}}
 @keyframes room-wiggle{0%,100%{transform:rotate(0) translateY(0)}25%{transform:rotate(-9deg) translateY(-7px)}55%{transform:rotate(7deg) translateY(-4px)}80%{transform:rotate(-3deg)}}

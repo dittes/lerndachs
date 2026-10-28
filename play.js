@@ -2,18 +2,18 @@
 (()=>{
 let ctx,master,music,enabled=state.audioSettings.enabled!==false,volume=state.audioSettings.volume??.6,station=state.audioSettings.station??0,timer,step=0,playing=false,voices=0,water,sampleNodes=[],sampleActive=false,sampleResume,activated=false;
 const names=['Wiesenklang · Akustik','Pixelparty · Elektro','Mondcafé · Jazz'];
-function persistAudio(){state.audioSettings={enabled,volume,station,gainVersion:1};save()}
-function init(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=0;const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=6;limiter.ratio.value=12;limiter.attack.value=.003;limiter.release.value=.15;master.connect(limiter);limiter.connect(ctx.destination);music=ctx.createGain();music.gain.value=.34;music.connect(master)}ctx.resume().catch(()=>{});master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.03)}
+function persistAudio(){state.audioSettings={enabled,volume,station,gainVersion:1,radioSwitchVersion:1};save()}
+function init(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=0;const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=6;limiter.ratio.value=12;limiter.attack.value=.003;limiter.release.value=.15;master.connect(limiter);limiter.connect(ctx.destination);music=ctx.createGain();music.gain.value=0;music.connect(master)}ctx.resume().catch(()=>{});master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.03)}
 function tone(hz,d=.2,type='sine',gain=.12,delay=0,dest=master){if(!ctx||voices>18)return;voices++;let o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=type;o.frequency.setValueAtTime(Math.max(30,hz),t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain*(dest===music?1.25:2.5),t+.035);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(dest);o.start(t);o.stop(t+d+.02);o.onended=()=>{voices--;o.disconnect();g.disconnect()};return o}
 function noise(d=.2,gain=.1,freq=1200){if(!ctx||voices>18)return;voices++;const n=ctx.createBufferSource(),b=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);n.buffer=b;const f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='lowpass';f.frequency.value=freq;g.gain.value=gain*2;n.connect(f).connect(g).connect(master);n.start();n.onended=()=>{voices--;n.disconnect();f.disconnect();g.disconnect()};return n}
-function effect(id){if(!enabled)return;init();
+function effect(id){if(!enabled)return;activated=true;init();
  if(id==='reward'){[523.25,659.25,783.99,1046.5].forEach((h,i)=>tone(h,.42,'sine',.09,i*.11));return}
  if(['sofa','bed','cushion','blanket','rug'].includes(id)){tone(147,.2,'triangle',.08);tone(220,.28,'sine',.06,.08);return}
  if(['plant','flower','hanging','tree','curtain'].includes(id)){noise(.2,.025,1600);tone(740,.18,'sine',.035,.1);return}
  if(['watering','cloud','counter'].includes(id)){noise(.45,.045,900);[660,880,1100].forEach((h,i)=>tone(h,.12,'sine',.035,i*.1));return}
  if(['table','stool','shelf','books','basket','drop','tap'].includes(id)){tone(262,.12,'triangle',.09);tone(392,.16,'sine',.035,.055);return}
  if(['tea','jar','kettle','fishbowl'].includes(id)){tone(1047,.4,'sine',.06);tone(1568,.25,'sine',.025,.035);return}
- if(['lamp','pendant','fridge','cabinet','fan','clock'].includes(id)){tone(330,.08,'triangle',.07);tone(494,.14,'sine',.05,.07);return}
+ if(['lamp','pendant','fridge','cabinet','fan','clock','radio'].includes(id)){tone(330,.08,'triangle',.07);tone(494,.14,'sine',.05,.07);return}
  if(id==='camera'){noise(.08,.035,2400);tone(784,.12,'triangle',.035,.1);return}
  if(id==='cat'){tone(110,.6,'triangle',.025);tone(165,.45,'sine',.04,.12);return}
  if(id==='dog'){tone(196,.13,'triangle',.08);tone(147,.18,'triangle',.07,.16);return}
@@ -26,23 +26,31 @@ function effect(id){if(!enabled)return;init();
 }
 function tick(){if(!playing||!enabled||document.hidden)return;init();const melodies=[[0,4,7,12,7,4,2,7,5,9,12,9,7,4,2,4],[0,12,7,3,10,7,15,12,0,7,12,15,10,7,3,7],[0,4,7,11,14,11,7,4,2,5,9,12,16,12,9,5]];let base=[196,220,146.83][station],n=melodies[station][step%16],hz=base*2**(n/12);tone(hz,[.7,.18,.45][station],['triangle','triangle','sine'][station],[.09,.035,.12][station],0,music);if(step%4===0)tone(base/2,.65,'sine',.14,0,music);if(station===2&&step%2===0){tone(hz*1.25,.4,'sine',.04,.06,music);tone(hz*1.5,.4,'sine',.04,.06,music)}step++}
 // This single stream belongs to the radio. There is no second ambient soundtrack.
-function radio(on=true){playing=!!on;clearInterval(timer);if(playing&&enabled){init();tick();timer=setInterval(tick,[320,180,420][station])}}
-function setEnabled(on){enabled=on;activated=true;init();const b=document.querySelector('#sound-toggle');b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'Töne ausschalten':'Töne einschalten');b.style.opacity=on?'1':'.65';if(!on&&water){water.stop();water=null}if(!sampleActive)radio(true);persistAudio()}
+function radio(on){
+ playing=!!on;clearInterval(timer);
+ if(playing){init();music.gain.setTargetAtTime(.34,ctx.currentTime,.04);tick();timer=setInterval(tick,[320,180,420][station])}
+ else if(ctx)music.gain.setTargetAtTime(0,ctx.currentTime,.04);
+}
+function sync(){
+ const shouldPlay=activated&&enabled&&!sampleActive&&current().some(o=>o.id==='radio'&&o.on);
+ if(playing!==shouldPlay)radio(shouldPlay);
+ if(water&&!current().some(o=>o.id==='counter'&&o.on)){water.stop();water=null}
+}
+function setEnabled(on){enabled=on;activated=true;init();const b=document.querySelector('#sound-toggle');b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'Töne ausschalten':'Töne einschalten');b.style.opacity=on?'1':'.65';if(!on&&water){water.stop();water=null}sync();persistAudio()}
 document.querySelector('#sound-toggle').onclick=()=>{setEnabled(!enabled);if(enabled)effect('tea')};
-function setStation(n){station=(Number(n)+names.length)%names.length;step=0;for(const o of [...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].filter(o=>o.id==='radio'))o.on=true;activated=true;radio(true);persistAudio();toast('♪ '+names[station])}
+function setStation(n){station=(Number(n)+names.length)%names.length;step=0;if(playing)radio(true);persistAudio();toast('♪ '+names[station])}
 window.addEventListener('world-use',e=>{if(e.detail.id!=='counter')return;setTimeout(()=>{if(water){water.stop();water=null}if(!enabled||!current().find(o=>o.uid===e.detail.uid)?.on)return;init();const b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*.008;water=ctx.createBufferSource();water.buffer=b;water.loop=true;const f=ctx.createBiquadFilter();f.frequency.value=900;water.connect(f).connect(master);water.start()},0)});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)ctx?.suspend();else if(enabled)ctx?.resume()});
-function stopSample(){clearTimeout(sampleResume);for(const node of sampleNodes){try{node?.stop()}catch{}}sampleNodes=[];const resume=sampleActive;sampleActive=false;if(resume&&activated)radio(true)}
+function stopSample(){clearTimeout(sampleResume);for(const node of sampleNodes){try{node?.stop()}catch{}}sampleNodes=[];sampleActive=false;sync()}
 function playSample(sample){
  stopSample();sampleActive=true;enabled=true;activated=true;init();radio(false);persistAudio();
  const button=document.querySelector('#sound-toggle');button.setAttribute('aria-pressed','true');button.setAttribute('aria-label','Töne ausschalten');
  let duration=0;for(const [hz,durationSeconds,gain,delay] of sample.notes){sampleNodes.push(tone(hz,durationSeconds,'sine',gain,delay));duration=Math.max(duration,(delay+durationSeconds)*1000)}
  sampleResume=setTimeout(stopSample,duration+100);return duration;
 }
-window.WorldSound={effect,radio,nextStation(){setStation((station+1)%names.length)},playSample,stopSample,sync(){if(activated&&!sampleActive&&!playing)radio(true);if(water&&!current().some(o=>o.id==='counter'&&o.on)){water.stop();water=null}},setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));persistAudio();if(ctx)master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.05)},get status(){return {enabled,playing,station,volume,voices,sampleActive}}};
-for(const o of [...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].filter(o=>o.id==='radio'))o.on=true;
+window.WorldSound={effect,radio,nextStation(){setStation((station+1)%names.length)},playSample,stopSample,sync,setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));persistAudio();if(ctx)master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.05)},get status(){return {enabled,playing,station,volume,voices,sampleActive}}};
 const soundButton=document.querySelector('#sound-toggle');soundButton.setAttribute('aria-pressed',enabled);soundButton.setAttribute('aria-label',enabled?'Töne ausschalten':'Töne einschalten');
-function activate(){if(activated)return;activated=true;if(enabled)radio(true);document.removeEventListener('pointerdown',activate,true);document.removeEventListener('keydown',activate,true)}document.addEventListener('pointerdown',activate,true);document.addEventListener('keydown',activate,true);
+function activate(){if(activated)return;activated=true;sync();document.removeEventListener('pointerdown',activate,true);document.removeEventListener('keydown',activate,true)}document.addEventListener('pointerdown',activate,true);document.addEventListener('keydown',activate,true);
 const obs=new MutationObserver(()=>{const c=document.querySelector('#panel-content');if(activePanel==='help'&&!document.querySelector('#volume-control')){const row=document.createElement('label');row.className='volume-setting';row.innerHTML='Lautstärke <input id="volume-control" type="range" min="0" max="1" step="0.05" value="'+volume+'">';c.append(row);row.querySelector('input').oninput=e=>WorldSound.setVolume(e.target.value)}});obs.observe(document.querySelector('#panel-content'),{childList:true});
 })();
 
@@ -57,7 +65,7 @@ function open(next='add',done,who){mode=next;callback=done;personUid=who;const p
  dialog.querySelector('#character-name').value=next==='initial'||next==='add'?WorldArt.names[chosen]:person?.name||WorldArt.names[chosen];
  dialog.querySelectorAll('[data-person]').forEach(b=>b.onclick=()=>{const input=dialog.querySelector('input');if(input.value===WorldArt.names[chosen])input.value=WorldArt.names[b.dataset.person];chosen=b.dataset.person;dialog.querySelectorAll('[data-person]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.person===chosen))});
  dialog.querySelector('#close-character')?.addEventListener('click',()=>dialog.close());
- dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(!J.person(chosen,dialog.querySelector('input').value,mode,personUid)){dialog.querySelector('#character-error').textContent='Bitte wähle einen Namen. In deiner Welt können bis zu 20 Figuren mitspielen.';return}dialog.close();callback?.();window.dispatchEvent(new Event('learning-celebration'))};
+ dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(!J.person(chosen,dialog.querySelector('input').value,mode,personUid)){dialog.querySelector('#character-error').textContent='Bitte wähle einen Namen. In deiner Welt können bis zu 20 Figuren mitspielen.';return}dialog.close();callback?.();if(mode!=='initial')window.dispatchEvent(new CustomEvent('learning-celebration',{detail:{kind:'stars'}}))};
  dialog.showModal();
 }
 function render(c){c.querySelector('.card-grid')?.remove();c.querySelectorAll('.note,.wide').forEach(e=>e.remove());const body=document.createElement('div');body.innerHTML=`<div class="friends-actions"><button class="journey-primary" data-friend-mode="change">Meine Figur ändern</button><button class="journey-primary" data-friend-mode="add">+ Freund hinzufügen</button></div><div class="card-grid">${J.people().map(o=>`<article class="item-card"><div class="item-art">${J.preview({id:o.id})}</div><div class="item-body"><h3>${esc(o.name)}</h3><p>${o.player?'Das bist du':'Dein Freund'}</p><button data-person-edit="${o.uid}">Figur & Namen ändern</button><button data-person-show="${o.uid}">In meine Welt holen</button></div></article>`).join('')}</div><p class="note">Du entscheidest, wer mitspielt. Namen bleiben auf diesem Gerät gespeichert. Eingepackte Freunde findest du auch in deiner Tasche.</p>`;c.append(body)}
@@ -2926,7 +2934,7 @@ window.LerndachsEvidence={start,finish,mistake(){if(current)current.errors++},hi
 ;
 /* Lerndachs class-based learning journey and in-world activities. */
 (()=>{
-const badger=`<svg viewBox="-55 -110 110 115" aria-hidden="true">${WorldArt.art('dachs')}</svg>`;
+const badger=`<svg viewBox="-76 -139 152 145" aria-hidden="true">${WorldArt.badger('portrait')}</svg>`;
 for(const selector of ['.badger-icon','.brand-badger'])document.querySelector(selector).innerHTML=badger;
 const {paths,sources}=LerndachsCurriculum,grades=LerndachsGrades,J=LerndachsJourney,progress=J.profile;
 const dialog=document.querySelector('#learning-dialog'),content=document.querySelector('#learning-content'),strip=document.querySelector('#quest-strip');
@@ -3268,15 +3276,27 @@ function tick(){
  else if(now-lastSave>30000)save();
 }
 document.addEventListener('visibilitychange',()=>{last=performance.now();save()});window.addEventListener('pagehide',save);setInterval(tick,1000);
-let confettiTimer;
-function celebrate(){
+let confettiTimer,celebrationNumber=0;
+const celebrationKinds=['confetti','stars','bubbles'];
+function celebrate(event){
  document.querySelector('#learning-confetti')?.remove();clearTimeout(confettiTimer);
- const layer=document.createElement('div');layer.id='learning-confetti';layer.setAttribute('aria-hidden','true');
- const quiet=matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.classList.contains('no-motion');layer.className=quiet?'quiet-confetti':'';
- for(let i=0;i<(quiet?18:144);i++){const piece=document.createElement('i');piece.style.cssText=`--left:${(i*37)%100}%;--drift:${(i%7-3)*30}px;--turn:${i%2?620:-480}deg;--delay:${i%8*.045}s;--color:${['#4fbaa8','#ffc958','#edb9cf','#f28c72','#ac9bd4'][i%5]}`;layer.append(piece)}
- // Dialog content is in the browser top layer; append confetti there for visible celebrations.
+ const kind=event.detail?.kind||celebrationKinds[celebrationNumber++%celebrationKinds.length];
+ const layer=document.createElement('div');layer.id='learning-confetti';layer.className='celebration celebration-'+kind;layer.setAttribute('aria-hidden','true');
+ const quiet=matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.classList.contains('no-motion');
+ layer.classList.toggle('quiet-celebration',quiet);
+ const count=quiet?12:kind==='confetti'?72:kind==='stars'?36:24;
+ for(let i=0;i<count;i++){
+  const particle=document.createElement('i'),shape=document.createElement('b'),angle=Math.random()*Math.PI*2,side=i%2?1:-1;
+  const x=quiet?15+Math.random()*70:kind==='confetti'?(side===1?4:96):kind==='stars'?50:10+Math.random()*80;
+  const y=quiet?20+Math.random()*50:kind==='confetti'?88:kind==='stars'?48:95;
+  const dx=kind==='confetti'?side*(15+Math.random()*35):kind==='stars'?Math.cos(angle)*(10+Math.random()*28):(Math.random()-.5)*24;
+  const dy=kind==='confetti'?-(45+Math.random()*35):kind==='stars'?Math.sin(angle)*(12+Math.random()*28):-80;
+  particle.className='celebration-particle';shape.className='celebration-shape';
+  particle.style.cssText=`--x:${x}%;--y:${y}%;--dx:${dx}vw;--dy:${dy}vh;--spin:${(Math.random()-.5)*1080}deg;--delay:${Math.random()*.3}s;--duration:${1.8+Math.random()*1.2}s;--size:${kind==='bubbles'?18+Math.random()*24:7+Math.random()*12}px;--color:${['#4fbaa8','#ffc958','#edb9cf','#f28c72','#ac9bd4'][i%5]}`;
+  particle.append(shape);layer.append(particle);
+ }
  const dialog=[...document.querySelectorAll('dialog[open]')].at(-1);(dialog||document.body).append(layer);
- confettiTimer=setTimeout(()=>layer.remove(),quiet?1300:3400);
+ confettiTimer=setTimeout(()=>layer.remove(),quiet?1300:3600);
 }
 window.addEventListener('learning-celebration',celebrate);
 })();
@@ -3343,7 +3363,7 @@ function startLearning(){
 }
 function hideBehindSofa(){
  const sofa=Lernwelt.find('sofa'),dachs=Lernwelt.find('dachs');
- if(sofa&&dachs){dachs.x=sofa.x+110*(sofa.s||1);dachs.y=sofa.y-130*(sofa.s||1);dachs.layer=2.9;J.render()}
+ if(sofa&&dachs){dachs.x=sofa.x+110*(sofa.s||1);dachs.y=sofa.y-130*(sofa.s||1);dachs.layer=2.9;dachs.pose='curled';J.render()}
 }
 function explore(id){
  if(p.opening==='explore'){
@@ -3352,7 +3372,7 @@ function explore(id){
  }else if(p.opening==='couch'&&id==='sofa'){
   p.opening='dachs';hideBehindSofa();WorldSound.effect('dachs');
  }else if(p.opening==='dachs'&&id==='dachs'){
-  p.opening='move-in';const dachs=Lernwelt.find('dachs');dachs.x+=100;dachs.y+=100;dachs.layer=3.5;J.render();WorldSound.effect('reward');
+  p.opening='move-in';const dachs=Lernwelt.find('dachs'),sofa=Lernwelt.find('sofa');dachs.x=sofa?sofa.x+260:1020;dachs.y=790;dachs.layer=4;dachs.pose='standing';J.render();WorldSound.effect('reward');window.dispatchEvent(new CustomEvent('learning-celebration',{detail:{kind:'stars'}}));
  }else return;
  J.save();show();
 }
@@ -3372,5 +3392,10 @@ window.addEventListener('request-opening',show);
 window.addEventListener('request-earn-stars',startLearning);
 window.addEventListener('opening-changed',show);
 document.querySelector('#welcome-hint').hidden=true;
+const dachs=Lernwelt.find('dachs');
+if(dachs&&!dachs.pose){
+ if(['explore','couch','dachs'].includes(p.opening))hideBehindSofa();
+ else{dachs.pose='standing';dachs.y=790;dachs.layer=4;J.render()}
+}
 show();
 })();
