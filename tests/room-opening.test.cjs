@@ -20,8 +20,8 @@ function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
  prototype.scrollBy=function({left}){this.scrollLeft+=left};
  window.Element.prototype.setPointerCapture=function(){};
  const scene=document.querySelector('#scene-scroll');scene.scrollLeft=0;
- Object.defineProperty(scene,'clientWidth',{value:800});Object.defineProperty(scene,'scrollWidth',{value:1600});
- Object.defineProperty(document.querySelector('#world'),'clientWidth',{value:1600});
+ Object.defineProperty(scene,'clientWidth',{value:800});Object.defineProperty(scene,'scrollWidth',{value:3600});
+ Object.defineProperty(document.querySelector('#world'),'clientWidth',{value:3600});
  document.querySelector('#world').getScreenCTM=()=>({a:1,d:1,e:-scene.scrollLeft,f:0,inverse:()=>({a:1,d:1,e:scene.scrollLeft,f:0})});
  document.querySelector('.game-shell').getBoundingClientRect=()=>({left:0,top:0,right:800,bottom:900,width:800,height:900});
  function audioNode(){
@@ -51,7 +51,11 @@ function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
   addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args),dispatchEvent:event=>events.dispatchEvent(event)
  };
  if(speech){context.speechSynthesis={cancel(){},speak(utterance){spoken.push(utterance.text)}};context.SpeechSynthesisUtterance=class{constructor(text){this.text=text}}}
- context.window=context;vm.createContext(context);vm.runInContext(read('app.js').split('/* Visits and gestures are transient.')[0],context,{filename:'app.js'});
+ context.window=context;vm.createContext(context);
+ // These regression cases deliberately cover an existing legacy world; the new
+ // curtain flow and first-visit dates are exercised in browser acceptance tests.
+ if(!saved){vm.runInContext(read('world-art.js')+'\n;'+read('world-config.js'),context);stored=JSON.stringify({version:3,balance:0,owned:['garden','radio',...context.LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:context.LerndachsWorld.empty()},stored:{},receipts:[],journey:{opening:'explore'}})}
+ vm.runInContext(read('app.js').split('/* Visits and gestures are transient.')[0],context,{filename:'app.js'});
  if(!realAudio)context.WorldSound={effect(){},sync(){},nextStation(){},stopSample(){}};
  const advance=milliseconds=>{
   const end=now+milliseconds;
