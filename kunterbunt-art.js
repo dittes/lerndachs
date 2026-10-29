@@ -23,7 +23,7 @@ function character(id){const v=variants[id]||{base:'milo'},base=v.base;let s=K.p
  return g(s.replaceAll('data-person=', 'data-character-art='),'scale(.86)','k-cast');
 }
 function badger(pose='standing'){const fur='#9ba4a1',mask='#49515b';let head=e(-46,-104,19,20,fur,C.ink)+e(46,-104,19,20,fur,C.ink)+e(-46,-104,10,11,C.pink)+e(46,-104,10,11,C.pink)+p('M-60-70q0-46 47-49l13-12 13 12q47 3 47 49v12Q57-9 0-10-57-9-60-58Z',C.cream)+p('M-45-103q22 8 28 30l-7 36q-30-8-31-31-3-22 10-35Zm90 0q-22 8-28 30l7 36q30-8 31-31 3-22-10-35Z',mask,'none');
- head+=pose==='curled'?g(p('M-36-65q9 8 18 0m36 0q9 8 18 0','none',C.ink,3),'','badger-eyes-closed'):e(-27,-66,10,12,C.white)+e(27,-66,10,12,C.white)+g(e(-27,-65,4.5,7,C.ink)+e(27,-65,4.5,7,C.ink),'','character-pupils');head+=e(-39,-39,9,4,C.pink)+e(39,-39,9,4,C.pink)+p('M-10-42q10-4 20 0-2 12-10 12t-10-12Z',C.ink)+p('M0-30v6m-13-3q13 13 26 0','none',C.ink,2.5);
+ head+=pose==='curled'?g(p('M-36-65q9 8 18 0m36 0q9 8 18 0','none',C.ink,3),'','badger-eyes-closed'):g(e(-27,-66,10,12,C.white)+e(27,-66,10,12,C.white)+g(e(-27,-65,4.5,7,C.ink)+e(27,-65,4.5,7,C.ink),'','character-pupils'),'','badger-eyes-open');head+=e(-39,-39,9,4,C.pink)+e(39,-39,9,4,C.pink)+p('M-10-42q10-4 20 0-2 12-10 12t-10-12Z',C.ink)+p('M0-30v6m-13-3q13 13 26 0','none',C.ink,2.5);
  if(pose==='portrait')return head;
  if(pose==='curled'||pose==='waking')return '<g class="badger-body badger-curled">'+shadow(62)+e(6,-38,62,40,fur,C.ink)+e(19,-39,37,24,C.cream)+g(head,'translate(-27 6) scale(.59)','badger-sleep-head')+p('M36-63q44 8 26 44','none',C.ink,13)+p('M36-63q44 8 26 44','none',fur,7)+'</g>';
  return shadow(51)+g(
