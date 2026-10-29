@@ -7,8 +7,8 @@
 body:has(dialog[open]) #room-guide{visibility:hidden}
 body:not([data-opening="done"]) :is(#learn-button,#schedule-button,#halloween-button,#radio-dock){display:none!important}
 body:is([data-opening="explore"],[data-opening="couch"],[data-opening="dachs"],[data-opening="move-in"]) :is(.toolbox,.wallet){display:none!important}
-body:is([data-opening="explore"],[data-opening="couch"],[data-opening="dachs"]) .brand-badger{visibility:hidden}
-body:is([data-opening="explore"],[data-opening="couch"],[data-opening="dachs"]) .place-pill{padding-left:19px}
+
+
 .shop-wallet{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:18px;margin:0 0 20px}
 .shop-wallet strong{background:var(--color-accent);padding:10px 16px;border-radius:22px}
 .first-shop .item-art{height:165px}

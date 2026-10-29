@@ -5,7 +5,7 @@ function credit(state,{receiptId,stars}={}){
  if(typeof receiptId!=='string'||receiptId.length<1||receiptId.length>200||!Number.isSafeInteger(stars)||stars<1||stars>1000)throw new TypeError('Ungültige Belohnung');
  if(state.receipts.includes(receiptId))return {credited:false,balance:state.balance};
  if(!Number.isSafeInteger(state.balance+stars))throw new RangeError('Sternelimit erreicht');
- state.balance+=stars;state.receipts.push(receiptId);return {credited:true,balance:state.balance};
+ const from=state.balance;state.balance+=stars;state.receipts.push(receiptId);if(typeof window!=='undefined'&&window.dispatchEvent)window.dispatchEvent(new CustomEvent('stars-earned',{detail:{from,to:state.balance,stars,receiptId}}));return {credited:true,balance:state.balance};
 }
 function purchase(state,item){
  if(!item||typeof item.id!=='string'||!Number.isSafeInteger(item.price)||item.price<0)throw new TypeError('Ungültiger Artikel');

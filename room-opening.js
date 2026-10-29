@@ -8,7 +8,7 @@ function show(){
  document.querySelector('#room-guide-text').textContent=lines[p.opening];
  const action=document.querySelector('#room-guide-action');
  action.hidden=['explore','dachs'].includes(p.opening);
- action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich!':p.opening==='earn'?'Sterne sammeln':'Zum Laden';
+ action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich!':p.opening==='earn'?'Sterne sammeln':'Einrichten';
  document.querySelector('#room-guide-read').hidden=!('speechSynthesis'in window);
 }
 function moveIn(){

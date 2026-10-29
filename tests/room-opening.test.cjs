@@ -24,11 +24,9 @@ function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
  Object.defineProperty(document.querySelector('#world'),'clientWidth',{value:1600});
  document.querySelector('#world').getScreenCTM=()=>({a:1,d:1,e:-scene.scrollLeft,f:0,inverse:()=>({a:1,d:1,e:scene.scrollLeft,f:0})});
  document.querySelector('.game-shell').getBoundingClientRect=()=>({left:0,top:0,right:800,bottom:900,width:800,height:900});
- Object.defineProperty(document.querySelector('#radio-channel'),'offsetWidth',{value:76});
- Object.defineProperty(document.querySelector('#radio-channel'),'offsetHeight',{value:56});
  function audioNode(){
   const parameter={setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){},setTargetAtTime(){}};
-  return {frequency:{...parameter,setValueAtTime(value){notes.push(value)}},gain:parameter,threshold:{},knee:{},ratio:{},attack:{},release:{},connect(node){return node},disconnect(){},start(){},stop(){schedule(()=>this.onended?.())}};
+  return {frequency:{...parameter,setValueAtTime(value){notes.push(value)}},gain:parameter,Q:{},threshold:{},knee:{},ratio:{},attack:{},release:{},connect(node){return node},disconnect(){},start(){},stop(){schedule(()=>this.onended?.())}};
  }
  class AudioContext{
   currentTime=0;sampleRate=8000;destination={};
@@ -53,7 +51,7 @@ function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
   addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args),dispatchEvent:event=>events.dispatchEvent(event)
  };
  if(speech){context.speechSynthesis={cancel(){},speak(utterance){spoken.push(utterance.text)}};context.SpeechSynthesisUtterance=class{constructor(text){this.text=text}}}
- context.window=context;vm.createContext(context);vm.runInContext(read('app.js'),context,{filename:'app.js'});
+ context.window=context;vm.createContext(context);vm.runInContext(read('app.js').split('/* Visits and gestures are transient.')[0],context,{filename:'app.js'});
  if(!realAudio)context.WorldSound={effect(){},sync(){},nextStation(){},stopSample(){}};
  const advance=milliseconds=>{
   const end=now+milliseconds;
@@ -175,51 +173,35 @@ test('soft furnishings and plants have different sounds, and mute is respected',
  game.click('#sound-toggle');notes.length=0;context.WorldSound.effect('sofa');assert.equal(notes.length,0);
 });
 
-test('radio starts off, toggles, and stays off through other sounds and music samples',()=>{
+test('radio starts off, cycles five stations then off, and stays off through other sounds and samples',()=>{
  const game=loadGame(undefined,{realAudio:true}),{context}=game;
  assert.equal(context.Lernwelt.find('radio').on,false);assert.equal(context.WorldSound.status.playing,false);
  game.tap('books');assert.equal(context.WorldSound.status.playing,false);
- game.tap('radio');assert.equal(context.Lernwelt.find('radio').on,true);assert.equal(context.WorldSound.status.playing,true);
- game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,false);
- game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,true);
+ for(let station=0;station<5;station++){game.tap('radio');assert.equal(context.WorldSound.status.station,station);assert.equal(context.WorldSound.status.playing,true);assert.equal(context.Lernwelt.find('radio').on,true)}
  game.tap('radio');assert.equal(context.Lernwelt.find('radio').on,false);assert.equal(context.WorldSound.status.playing,false);
- context.LerndachsJourney.render();assert.equal(context.WorldSound.status.playing,false);
- context.WorldSound.playSample({notes:[[440,.1,.04,0]]});game.advance(500);
- assert.equal(context.WorldSound.status.playing,false);
+ context.LerndachsJourney.render();context.WorldSound.playSample({notes:[[440,.1,.04,0]]});game.advance(500);assert.equal(context.WorldSound.status.playing,false);
  assert.equal(loadGame(game.saved(),{realAudio:true}).context.Lernwelt.find('radio').on,false);
+ game.tap('radio');assert.equal(context.WorldSound.status.station,0);
 });
 
-test('the radio channel button appears when on, cycles music, and follows the radio',()=>{
- const game=loadGame(undefined,{realAudio:true}),{context,document,click,pointer,advance}=game,button=document.querySelector('#radio-channel');
- assert.equal(button.hidden,true);
- game.tap('radio');assert.equal(button.hidden,false);
- const firstColor=button.style.backgroundColor,firstLeft=parseFloat(button.style.left);
- click('#radio-channel');assert.equal(context.WorldSound.status.station,1);assert.equal(context.WorldSound.status.playing,true);
- assert.equal(context.Lernwelt.find('radio').on,true);assert.notEqual(button.style.backgroundColor,firstColor);
- const reload=loadGame(game.saved(),{realAudio:true});assert.equal(reload.context.WorldSound.status.station,1);
- assert.equal(reload.document.querySelector('#radio-channel').hidden,true);
- click('#radio-channel');assert.equal(context.WorldSound.status.station,2);
- click('#radio-channel');assert.equal(context.WorldSound.status.station,0);assert.equal(button.style.backgroundColor,firstColor);
- pointer('pointerdown',firstLeft+20,762,'#radio-channel');advance(400);
- assert.equal(document.body.classList.contains('is-dragging'),false);pointer('pointerup',firstLeft+20,762);
- const radio=context.Lernwelt.find('radio');radio.x-=120;context.LerndachsJourney.render();
- assert.notEqual(parseFloat(button.style.left),firstLeft);
- const scene=document.querySelector('#scene-scroll');scene.scrollLeft=1400;scene.dispatchEvent(new context.Event('scroll'));
- assert.equal(button.hidden,true);
- scene.scrollLeft=400;scene.dispatchEvent(new context.Event('scroll'));assert.equal(button.hidden,false);
- game.tap('radio');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,false);
+test('direct radio taps select five distinct station arrangements and remember the current station',()=>{
+ const game=loadGame(undefined,{realAudio:true}),{context,document,notes}=game,signatures=[];
+ assert.equal(document.querySelector('#radio-channel'),null);assert.equal(context.WorldSound.stations.length,5);
+ for(let station=0;station<5;station++){notes.length=0;game.tap('radio');signatures.push(JSON.stringify(notes));game.advance(800)}
+ assert.equal(new Set(signatures).size,5);
+ const reload=loadGame(game.saved(),{realAudio:true});assert.equal(reload.context.WorldSound.status.station,4);assert.equal(reload.context.Lernwelt.find('radio').on,true);
+ reload.pointer('pointerdown',20,20,'#help');assert.equal(reload.context.WorldSound.status.playing,true);reload.tap('radio');assert.equal(reload.context.WorldSound.status.playing,false);
 });
 
-test('channel controls close after use or a tap elsewhere while music keeps playing',()=>{
- const game=loadGame(undefined,{realAudio:true}),{context,document,advance,click,pointer}=game,button=document.querySelector('#radio-channel');
- game.tap('radio');advance(4000);assert.equal(button.hidden,false);
- click('#radio-channel');advance(4000);assert.equal(button.hidden,false);
- advance(1100);assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
- context.LerndachsJourney.render();assert.equal(button.hidden,true);
- game.tap('radio');game.tap('radio');assert.equal(button.hidden,false);
- game.tap('books');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
- game.tap('radio');game.tap('radio');assert.equal(button.hidden,false);
- pointer('pointerdown',20,20,'#help');assert.equal(button.hidden,true);assert.equal(context.WorldSound.status.playing,true);
+test('muting, unrelated taps and redraws preserve radio selection without creating a second stream',()=>{
+ const game=loadGame(undefined,{realAudio:true}),{context}=game;
+ game.tap('radio');game.tap('radio');assert.equal(context.WorldSound.status.station,1);
+ game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,false);
+ game.tap('radio');assert.equal(context.WorldSound.status.station,2);assert.equal(context.WorldSound.status.playing,false);
+ game.click('#sound-toggle');assert.equal(context.WorldSound.status.playing,true);
+ game.tap('books');context.LerndachsJourney.render();assert.equal(context.WorldSound.status.station,2);assert.equal(context.WorldSound.status.playing,true);
+ game.tap('radio');game.tap('radio');game.tap('radio');assert.equal(context.WorldSound.status.playing,false);
+ context.LerndachsJourney.render();game.tap('books');assert.equal(context.WorldSound.status.playing,false);
 });
 
 test('a quick sofa tap keeps cushions above it; only a hold enables dragging',()=>{
@@ -297,7 +279,7 @@ test('early pointer movement still drags, and cancellation restores its starting
  assert.equal(sofa.x,dropped.x);assert.equal(sofa.y,dropped.y);
 });
 
-test('celebrations vary, stay above dialogs, clean up, and respect reduced motion',()=>{
+test('celebrations default to confetti, stay above dialogs, clean up, and respect reduced motion',()=>{
  const game=loadGame(),{context,document,advance}=game,kinds=[];
  let previous;
  for(let i=0;i<3;i++){
@@ -305,7 +287,7 @@ test('celebrations vary, stay above dialogs, clean up, and respect reduced motio
   const layer=document.querySelector('#learning-confetti');kinds.push(layer.className);
   assert.ok(layer.children.length>0);if(previous)assert.equal(previous.isConnected,false);previous=layer;
  }
- assert.equal(new Set(kinds).size,3);
+ assert.equal(new Set(kinds).size,1); // Default success now consistently uses confetti.
  const dialog=document.querySelector('#panel');dialog.showModal();
  context.dispatchEvent(new context.CustomEvent('learning-celebration',{detail:{kind:'stars'}}));
  assert.equal(document.querySelector('#learning-confetti').parentElement,dialog);

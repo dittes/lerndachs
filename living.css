@@ -1,0 +1,66 @@
+/* Transient movement never changes placement. */
+.utility-buttons{position:relative;pointer-events:auto}
+.world-menu[hidden],#dachs-visit[hidden]{display:none!important}
+.world-menu{position:absolute;right:0;top:100%;padding:10px;display:grid;gap:5px;min-width:224px;max-width:calc(100vw - 24px);border:2px solid var(--color-line,#d7d9c5);border-radius:20px;background:var(--color-paper,#fffdf4);box-shadow:0 10px 28px #38434c20;z-index:70}
+.world-menu .round-button{display:flex!important;align-items:center;justify-content:flex-start;gap:12px;width:100%!important;height:auto!important;min-height:44px;padding:9px 12px;border-radius:12px;text-decoration:none;color:var(--color-ink,#38434c);font-size:14px;white-space:nowrap;box-shadow:none!important}
+.world-menu .round-button svg{width:22px;height:22px;flex:none}.world-menu .round-button>span:first-child:not(.menu-label){font-size:24px;width:22px}
+.world-menu .round-button:hover,.world-menu .round-button:focus-visible{background:var(--color-mint,#a8d8bb)}
+#wall-phone{cursor:pointer;outline:none}#wall-phone:focus-visible>rect{stroke:var(--color-deep,#2a877d);stroke-width:7px}
+#dachs-visit{position:fixed;left:max(18px,calc(50% - 230px));bottom:106px;z-index:31;display:flex;align-items:flex-end;gap:0;max-width:calc(100vw - 30px);pointer-events:none}
+#dachs-visit>svg{width:125px;height:190px;flex:none;order:-1;overflow:visible;filter:drop-shadow(0 5px 0 #38434c13)}
+.visit-speech{pointer-events:auto;width:265px;max-width:calc(100vw - 140px);padding:16px;background:var(--color-paper,#fffdf4);border:2px solid var(--color-ink,#38434c);border-radius:23px 23px 23px 4px;margin-bottom:85px;box-shadow:0 6px 0 #38434c10}
+.visit-speech p{font-size:16px;line-height:1.45;margin:0 0 12px}.visit-speech>div{display:flex;gap:7px;flex-wrap:wrap}.visit-speech>div[hidden]{display:none}.visit-speech button{min-height:44px;border-radius:12px;padding:8px 12px;background:var(--color-mint,#a8d8bb);font-weight:700;font-size:14px}#visit-later{background:transparent}
+.success-friends{display:flex;justify-content:center;height:115px;margin:12px 0;gap:4px}.success-friends svg{height:115px;width:90px;overflow:visible}
+.star-flight-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:none!important;overflow:hidden!important;z-index:10000}
+.star-flight-layer::backdrop{background:transparent;pointer-events:none}.flying-star{position:absolute;color:var(--color-yellow,#ffe07e);text-shadow:0 2px 0 #9c7227;font-size:29px}.flight-counter{position:absolute;display:grid;place-content:center;border-radius:24px;background:var(--color-paper,#fffdf4);color:var(--color-ink,#38434c);font-size:20px;font-weight:800}
+.confetti-canvas-layer{position:fixed!important;inset:0!important;pointer-events:none!important;z-index:1000}
+[data-kind="mo"] .character-arm-left{transform-origin:-40px -81px}[data-kind="mo"] .character-arm-right{transform-origin:40px -81px}
+@media(max-width:600px){#dachs-visit{left:8px;bottom:98px}.visit-speech{padding:12px;margin-bottom:70px;max-width:calc(100vw - 124px)}.visit-speech p{font-size:14px}#dachs-visit>svg{width:105px;height:158px}.visit-speech button{font-size:13px;padding:8px}.world-menu{min-width:220px}.success-friends{height:90px}.success-friends svg{height:90px}}
+body .game-hud .wallet{display:flex!important}
+body:has(#dachs-visit:not([hidden])) #objects [data-kind="dachs"]{visibility:hidden}
+#world .person.reacting .sprite{animation:none!important}
+.utility-buttons{display:block;width:44px;min-width:44px}
+@media(max-width:640px){.utility-buttons{position:absolute;right:0;top:64px}}
+.game-hud{z-index:50}
+/* Kunterbunt uses exactly the reference's ink and flat pastel colours. */
+:root{--color-ink:#363c48;--color-paper:#fff3d7;--color-card:#fffdf4;--color-teal:#79c5ad;--color-mint:#a7ddbd;--color-deep:#4b978b;--color-coral:#f29880;--color-accent:#f6cc72;--color-yellow:#f6cc72;--color-pink:#eeb5ca;--color-purple:#b4a4d3;--color-cyan:#bde4e8}
+.k-cast .focus-ring{display:none}.k-cast .character-arm-left{transform-origin:-44px -132px}.k-cast .character-arm-right{transform-origin:44px -132px}.k-cast .character-head{transform-origin:0 0}
+.badger-leg,.badger-arm,.badger-body{transform-box:view-box}.badger-leg.left{transform-origin:-22px -40px}.badger-leg.right{transform-origin:22px -40px}.badger-arm.left{transform-origin:-35px -91px}.badger-arm.right{transform-origin:35px -91px}.badger-body{transform-origin:0 -40px}
+#dachs-visit.is-walking .visit-speech{opacity:0;pointer-events:none}.visit-speech{transition:opacity .18s}
+.world-menu{width:44px;min-width:44px;max-width:44px;padding:5px 0 0;gap:5px;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none}
+.world-menu .round-button{position:relative;justify-content:center;width:44px!important;height:44px!important;min-width:44px;padding:9px;border-radius:50%;font-size:23px}
+.world-menu .round-button>span:first-child:not(.menu-label){width:24px;height:24px;font-size:24px;display:grid;place-items:center}
+.world-menu .round-button .menu-label{position:absolute;right:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(4px);padding:9px 12px;border:1.5px solid var(--color-ink);border-radius:12px;background:var(--color-card);color:var(--color-ink);font-size:14px;line-height:1.2;font-weight:700;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s,transform .12s;box-shadow:0 3px 0 #363c4818}
+.world-menu .round-button:hover .menu-label,.world-menu .round-button:focus-visible .menu-label{opacity:1;visibility:visible;transform:translateY(-50%) translateX(0)}
+@media(max-width:600px){.world-menu{min-width:44px}.world-menu .round-button .menu-label{font-size:13px;right:calc(100% + 12px)}}
+@media(prefers-reduced-motion:reduce){.visit-speech,.menu-label{transition:none!important}}
+
+.world-menu .round-button{background:var(--color-card);border:2px solid var(--color-ink);line-height:1;box-shadow:0 3px 0 #363c4820!important}
+.world-menu .round-button:hover,.world-menu .round-button:focus-visible{background:var(--color-mint)}
+#menu-toggle{width:44px;min-width:44px;height:44px}
+
+/* One wallet, even above a modal: only its number and brief arrival pulse change. */
+.game-hud .wallet{width:144px;min-width:144px;gap:6px;padding:8px 10px;flex-shrink:0;transform-origin:center center;overflow:visible}
+.game-hud .wallet:hover{transform:none;box-shadow:0 4px 0 var(--hud-shadow)}
+.game-hud .wallet #balance{flex:1;min-width:0;text-align:center;font-size:18px;font-variant-numeric:tabular-nums}
+.game-hud .wallet .star{font-size:24px}.game-hud .wallet .plus{width:22px;min-width:22px;height:22px}
+#panel:has(.stars-total){width:min(460px,calc(100% - 24px));text-align:center}
+#panel:has(.stars-total) .dialog-top{justify-content:center;position:relative;padding-right:28px}
+#panel:has(.stars-total) #close-panel{position:absolute;right:0;top:0}
+.stars-total{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px 0 32px}.stars-total>span{color:var(--color-yellow);font-size:56px;line-height:1;text-shadow:0 2px 0 var(--color-ink)}.stars-total strong{font-size:clamp(48px,10vw,88px);line-height:1.2;font-variant-numeric:tabular-nums;letter-spacing:-2px;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:600px){.game-hud .wallet{width:124px;min-width:124px;padding:6px 8px;gap:5px}.game-hud .wallet .star{font-size:22px}.game-hud .wallet .plus{width:20px;min-width:20px;height:20px}}
+/* Breathing and cheering keep the rig's proportions, including arm lengths. */
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+
+.game-hud.wallet-portal{position:fixed!important;inset:0!important;display:block!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;pointer-events:none;z-index:10001;background:none;filter:none;backdrop-filter:none}
+.game-hud.wallet-portal .wallet{pointer-events:auto}
+/* Plain, consistent type for children, including controls and SVG labels. */
+:root{--font-body:Arial,sans-serif;--font-display:Arial,sans-serif}
+html,body,button,input,select,textarea,svg text{font-family:Arial,sans-serif}
+h1,h2,h3,h4,h5,h6{font-family:Arial,sans-serif;letter-spacing:normal;line-height:1.25}
+#room-guide-text,.task-description{font-size:18px;line-height:1.5}
+#person-form .pet-name-label,.avatar-editor legend,.avatar-hint{font-size:16px;line-height:1.5}
+.avatar-tabs button{font-size:14px}.avatar-tiles button{font-size:13px}.avatar-reset{font-size:14px}
+.world-menu .round-button .menu-label{font-size:15px}
+#panel .note{font-size:14px;line-height:1.6}
+body{font-size:16px}.learning-path>span:not(.path-symbol){font-size:14px;line-height:1.5}.schedule-day-tabs button,.subject-palette button{font-size:14px}

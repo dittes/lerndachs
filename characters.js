@@ -8,7 +8,7 @@ function paint(){frame=0;const pause=document.hidden||document.body.classList.co
   const parent=pupils.parentElement,matrix=parent.getScreenCTM?.();if(!matrix)continue;
   try{const local=new DOMPoint(pointer.x,pointer.y).matrixTransform(matrix.inverse()),box=pupils.getBBox();
    const dx=local.x-(box.x+box.width/2),dy=local.y-(box.y+box.height/2),distance=Math.hypot(dx,dy),strength=Math.min(1,distance/100);
-   const x=distance?dx/distance*4.8*strength:0,y=distance?dy/distance*4.6*strength:0;
+   const x=distance?dx/distance*(pupils.classList.contains('pet-pupils')?2:4.8)*strength:0,y=distance?dy/distance*(pupils.classList.contains('pet-pupils')?2:4.6)*strength:0;
    pupils.setAttribute('transform',`translate(${x.toFixed(3)} ${y.toFixed(3)})`);
   }catch{pupils.removeAttribute('transform')}
  }

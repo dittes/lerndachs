@@ -13,11 +13,16 @@ function tick(){
  else if(now-lastSave>30000)save();
 }
 document.addEventListener('visibilitychange',()=>{last=performance.now();save()});window.addEventListener('pagehide',save);setInterval(tick,1000);
-let confettiTimer,celebrationNumber=0;
+let confettiTimer,confettiEngine,celebrationNumber=0;
 const celebrationKinds=['confetti','stars','bubbles'];
 function celebrate(event){
- document.querySelector('#learning-confetti')?.remove();clearTimeout(confettiTimer);
- const kind=event.detail?.kind||celebrationKinds[celebrationNumber++%celebrationKinds.length];
+ confettiEngine?.destroy();confettiEngine=null;document.querySelector('#learning-confetti')?.remove();clearTimeout(confettiTimer);
+ const kind=event.detail?.kind||'confetti';
+ if(kind==='confetti'&&window.confetti&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&!document.body.classList.contains('no-motion')){
+ const layer=document.createElement('div');layer.id='learning-confetti';layer.className='confetti-canvas-layer';(document.querySelector('dialog[open]')||document.body).append(layer);
+ const canvasHost=document.createElement('div');canvasHost.id='confetti-burst-'+(++celebrationNumber);layer.append(canvasHost);
+ window.confetti(canvasHost.id,{count:130,spread:95,startVelocity:48,gravity:1.05,decay:.92,scalar:1.1,ticks:220,origin:{x:.5,y:.65},colors:['#4fbaa8','#ffc958','#edb9cf','#f28c72','#ac9bd4'],disableForReducedMotion:true}).then(engine=>{if(layer.isConnected)confettiEngine=engine;else engine?.destroy()});confettiTimer=setTimeout(()=>{confettiEngine?.destroy();confettiEngine=null;layer.remove()},5000);return;
+ }
  const layer=document.createElement('div');layer.id='learning-confetti';layer.className='celebration celebration-'+kind;layer.setAttribute('aria-hidden','true');
  const quiet=matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.classList.contains('no-motion');
  layer.classList.toggle('quiet-celebration',quiet);
@@ -36,4 +41,5 @@ function celebrate(event){
  confettiTimer=setTimeout(()=>layer.remove(),quiet?1300:3600);
 }
 window.addEventListener('learning-celebration',celebrate);
+ new MutationObserver(()=>{if(document.body.classList.contains('no-motion')){confettiEngine?.destroy();confettiEngine=null;document.querySelector('#learning-confetti')?.remove()}}).observe(document.body,{attributes:true,attributeFilter:['class']});
 })();

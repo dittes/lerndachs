@@ -19,14 +19,18 @@ function character(id){const v=variants[id]||{base:'milo'},base=v.base;let s=K.p
  }
  s=s.replace('class="person ', 'class="k-character character-action ').replace('class="body-rig"','class="body-rig character-breathe"').replace('class="head-rig"','class="head-rig character-head"').replaceAll('class="pupil"','class="pupil character-pupils"');
  // Explicit neutral arms also work in non-animated shop / PDF previews.
- s=s.replace(/<g class="soft-arm (left|right)"([^>]*)>([\s\S]*?)<\/g>/g,(all,side,attrs,paths)=>{const sign=side==='left'?-1:1,d=`M${sign*44} -132 Q${sign*51} -105 ${sign*54} -76`;return `<g class="soft-arm ${side}"${attrs}>`+paths.replace('class="arm-outline"','class="arm-outline" d="'+d+'"').replace('class="arm-fill"','class="arm-fill" d="'+d+'"').replace('class="sleeve-outline"','class="sleeve-outline" d="M'+sign*44+' -132l'+sign*2+' 9"').replace('class="sleeve-fill"','class="sleeve-fill" d="M'+sign*44+' -132l'+sign*2+' 9"')+'</g>'});
- return g(s,'scale(.86)','k-cast');
+ s=s.replace(/<g class="soft-arm (left|right)"([^>]*)>([\s\S]*?)<\/g>/g,(all,side,attrs,paths)=>{const sign=side==='left'?-1:1,d=`M${sign*44} -132 Q${sign*51} -105 ${sign*54} -76`;return `<g class="soft-arm ${side} character-arm character-arm-${side}"${attrs}>`+paths.replace('class="arm-outline"','class="arm-outline" d="'+d+'"').replace('class="arm-fill"','class="arm-fill" d="'+d+'"').replace('class="sleeve-outline"','class="sleeve-outline" d="M'+sign*44+' -132l'+sign*2+' 9"').replace('class="sleeve-fill"','class="sleeve-fill" d="M'+sign*44+' -132l'+sign*2+' 9"')+'</g>'});
+ return g(s.replaceAll('data-person=', 'data-character-art='),'scale(.86)','k-cast');
 }
 function badger(pose='standing'){const fur='#9ba4a1',mask='#49515b';let head=e(-46,-104,19,20,fur,C.ink)+e(46,-104,19,20,fur,C.ink)+e(-46,-104,10,11,C.pink)+e(46,-104,10,11,C.pink)+p('M-60-70q0-46 47-49l13-12 13 12q47 3 47 49v12Q57-9 0-10-57-9-60-58Z',C.cream)+p('M-45-103q22 8 28 30l-7 36q-30-8-31-31-3-22 10-35Zm90 0q-22 8-28 30l7 36q30-8 31-31 3-22-10-35Z',mask,'none');
  head+=pose==='curled'?p('M-36-65q9 8 18 0m36 0q9 8 18 0','none',C.ink,3):e(-27,-66,10,12,C.white)+e(27,-66,10,12,C.white)+g(e(-27,-65,4.5,7,C.ink)+e(27,-65,4.5,7,C.ink),'','character-pupils');head+=e(-39,-39,9,4,C.pink)+e(39,-39,9,4,C.pink)+p('M-10-42q10-4 20 0-2 12-10 12t-10-12Z',C.ink)+p('M0-30v6m-13-3q13 13 26 0','none',C.ink,2.5);
  if(pose==='portrait')return head;
- if(pose==='curled')return shadow(62)+e(6,-38,62,40,fur,C.ink)+e(19,-39,37,24,C.cream)+g(head,'translate(-27 6) scale(.59)')+p('M36-63q44 8 26 44','none',C.ink,13)+p('M36-63q44 8 26 44','none',fur,7);
- return shadow(51)+g(e(0,-61,44,57,fur,C.ink)+e(0,-57,25,33,C.cream)+e(-27,-8,24,11,fur,C.ink)+e(27,-8,24,11,fur,C.ink)+p('M-35-88l-16 38m86-38 16 38','none',C.ink,20)+p('M-35-88l-16 38m86-38 16 38','none',fur,13)+g(head,'translate(0 -102)','badger-head')+p('M-36-113q36 12 72 0v15q-36 12-72 0Z',C.mint)+p('M23-99l22 26-20 4-12-28Z',C.mint),'','badger-body');
+ if(pose==='curled')return '<g class="badger-body badger-curled">'+shadow(62)+e(6,-38,62,40,fur,C.ink)+e(19,-39,37,24,C.cream)+g(head,'translate(-27 6) scale(.59)')+p('M36-63q44 8 26 44','none',C.ink,13)+p('M36-63q44 8 26 44','none',fur,7)+'</g>';
+ return shadow(51)+g(
+ [-1,1].map(sign=>g(p(`M${sign*22}-40v29`,'none',C.ink,22)+p(`M${sign*22}-40v29`,'none',fur,15)+e(sign*26,-8,22,10,fur,C.ink)+p(`M${sign*26-5}-7v4m10-4v4`,'none',C.ink,1.6),'',`badger-leg ${sign<0?'left':'right'}`)).join('')+
+ e(0,-68,43,53,fur,C.ink)+e(0,-65,25,32,C.cream)+
+ [-1,1].map(sign=>g(p(`M${sign*35}-91q${sign*18} 17 ${sign*16} 41`,'none',C.ink,19)+p(`M${sign*35}-91q${sign*18} 17 ${sign*16} 41`,'none',fur,13)+e(sign*51,-48,10,11,fur,C.ink),'',`badger-arm ${sign<0?'left':'right'}`)).join('')+
+ g(head,'translate(0 -102)','badger-head')+p('M-36-113q36 12 72 0v15q-36 12-72 0Z',C.mint)+p('M23-99l22 26-20 4-12-28Z',C.mint),'','badger-body badger-standing');
 }
 const props={
 sofa:()=>g(K.sofa(),'scale(.85 .94)'),table:()=>K.table(),plant:()=>g(K.plant(),'scale(.76 .8)'),flower:()=>g(K.plant(),'scale(.7 .66)')+K.flower(0,-144,.65),radio:()=>g(K.radio(),'scale(.88 .85)'),lamp:()=>K.lamp(),tea:()=>K.tea(),
@@ -49,12 +53,44 @@ fruit:()=>p('M-55-29q8 36 55 36t55-36Z',C.purple)+e(-23,-40,22,22,C.coral,C.ink)
 jar:()=>r(-23,-53,46,52,C.sky,10)+r(-26,-62,52,14,C.mint,5)+r(-16,-40,32,28,C.cream,4,C.ink,2)+e(0,-26,9,9,C.yellow,C.ink,2)+e(-3,-29,1.5,1.5,C.ink)+e(4,-24,1.5,1.5,C.ink),
 toaster:()=>shadow(46)+r(-49,-54,98,53,C.yellow,14)+p('M-54-7h108','none',C.ink,5)+r(-30,-75,60,30,'#e9b77d',9)+r(-23,-68,46,18,'#ffe0aa',6,C.ink,2)+p('M39-41v19m0-12h16','none',C.ink,3)+e(23,-20,5,5,C.coral,C.ink,2),
 balloon:()=>p('M0-28q-20 35-3 63T0 107','none',C.ink,2.5)+g(e(0,-78,39,51,C.pink,C.ink)+p('M-6-29l6-10 6 10Z',C.pink)+p('M-23-99q-6 15-4 26','none',C.cream,6),'','balloon-bob'),
-watering:()=>shadow(38)+p('M-27-50q-37-27-37 10 0 20 29 16','none',C.ink,9)+p('M-27-50q-37-27-37 10 0 20 29 16','none',C.mint,4)+r(-35,-53,70,50,C.mint,10)+p('M31-36 64-64l14 15-43 35Z',C.mint)+p('M63-69 83-48','none',C.ink,7)+K.flower(-2,-28,.42),
+watering:()=>shadow(38)+p('M-26-47C-75-76-81-16-29-19','none',C.ink,12)+p('M-26-47C-75-76-81-16-29-19','none',C.mint,6)+p('M27-35 61-61 70-51 32-13Z',C.mint)+p('M-30-52h61l-2 37q-2 13-15 13H-13q-14 0-16-13Z',C.mint)+e(0,-52,31,8,C.deep,C.ink,3)+e(0,-53,23,4,'#377f75')+p('M-20-37v17q0 8 8 8','none','#bde7cf',4)+K.flower(7,-28,.33)+g(e(0,0,7,17,C.yellow,C.ink,3)+[-9,-3,3,9].map(y=>e(1,y,1.3,1.3,C.ink)).join(''),'translate(69 -58) rotate(-40)'),
 camera:()=>shadow(35)+r(-45,-52,90,51,C.purple,10)+r(-29,-65,30,13,C.purple,5)+e(4,-27,21,21,C.cream,C.ink)+e(4,-27,13,13,C.deep,C.ink,2)+e(8,-31,4,4,C.white)+r(29,-43,10,7,C.yellow,2,C.ink,2),
 guitar:()=>p('M-7-107v-65h14v65',C.wood)+p('M-13-113q-35-7-28 25 3 9-12 20-20 47 20 61h66q40-14 20-61-15-11-12-20 8-32-28-25Z',C.yellow)+e(0,-61,17,17,'#936c55',C.ink)+r(-18,-28,36,7,C.wood,2,C.ink,2)+p('M-4-153v125m4-125v125m4-125v125','none',C.cream,1.4)+r(-14,-174,28,24,C.wood,5)+p('M-19-166h6m26 9h-6','none',C.ink,3),
 blanket:()=>p('M-51-96h102l5 92q-18 12-28-1-16 12-28 0-16 12-28 0-17 11-28-1Z',C.coral)+p('M-40-78h80m-80 22h80m-80 22h80','none',C.cream,7)+p('M-32-94v88m32-88v88m32-88v88','none',C.yellow,3),
 basket:()=>shadow(38)+p('M-37-51q37-17 74 0l-5 49h-64Z',C.wood)+e(0,-51,37,10,C.cream,C.ink)+p('M-26-26h52m-51 13h50m-36-29v36m14-36v36m14-36v36','none','#a37854',2)+p('M-24-57v-18q24-25 48 0v18','none',C.ink,6),
 fan:()=>p('M0-90v40','none',C.ink,7)+g(p('M-6-17q-94 35-93 5 4-22 92-7m19-10q27-98 47-75 13 22-37 79m-4 12q75 69 45 78-25 5-53-66Z',C.wood),'','fan-spin')+e(0,-13,17,17,C.cream,C.ink),
 bed:()=>p('M-141-25v27m282-27v27','none',C.ink,10)+r(-156,-201,312,175,C.purple,35)+r(-147,-144,294,121,C.cream,14)+r(-132,-160,98,44,C.pink,14)+r(-24,-160,98,44,C.pink,14)+r(-147,-101,294,77,C.mint,10)+p('M-121-81h244m-244 24h244','none','#bce5cd',8)+r(-163,-35,326,20,C.purple,8)+K.flower(103,-181,.48),
-e asel:null
+easel:()=>p('M-4-173v168m-46 5 44-166L46 0','none',C.ink,13)+p('M-4-173v168m-46 5 44-166L46 0','none',C.wood,7)+r(-60,-154,120,119,C.cream,4)+p('M-47-50l26-51 37 31 30-57','none',C.mint,13)+e(28,-130,12,12,C.coral)+r(-68,-31,136,12,C.wood,3),
+hanging:()=>p('M-32-61 0-153 32-61','none',C.ink,3)+g(K.plant(),'translate(0 22) scale(.7)')+g(p('M-25-55q-44 25-25 59 22 28 8 56m66-115q42 18 21 63-15 22-3 43','none',C.deep,7),'','plant-sway'),
+curtain:()=>p('M-56-375q32 11 64 0L0-5q-25-13-56 0Z',C.pink)+p('M-34-352l-9 324m34-324L-10-29','none','#d58eae',3)+p('M-65-383h82','none',C.ink,5),
+window:()=>p('M-254 0v-365q0-101 86-101h336q86 0 86 101V0Z','none',C.ink,9)+p('M-254 0v-365q0-101 86-101h336q86 0 86 101V0Z','none',C.wood,5)+p('M0-460V0m-247-220h494','none',C.ink,10)+p('M0-460V0m-247-220h494','none',C.cream,5)+r(-268,-8,536,17,C.cream,5)+p('M-224-351l37-35m-37 62 23-22','none',C.white,4),
+sun:()=>e(0,0,49,49,C.yellow)+face(0,1),
+cloud:()=>g(p('M-68 8q-18-31 9-39 0-31 28-27 17-33 42-14 30-7 36 23 33 1 30 27 19 25-13 30H-52q-28 0-16 0Z',C.white,'none'),'','cloud-drift'),
+tree:()=>p('M-3 4v-147m0 68-35-35m35 19 30-44','none',C.wood,12)+g(e(-39,-148,48,57,'#83b68c')+e(20,-184,58,66,'#a4cc9a')+e(53,-133,44,49,'#83b68c')+e(0,-129,51,52,'#93c196')+[[-32,-152],[20,-210],[45,-130],[-8,-101]].map(([x,y])=>e(x,y,11,12,C.coral,C.ink,2)+p(`M${x} ${y-11}q2-11 10-10`,'none',C.deep,2)).join(''),'','tree-sway')
 };
+function petEyes(xs,y){return xs.map(x=>e(x,y,8,10,C.white,C.ink,2)).join('')+g(xs.map(x=>e(x,y+1,3.5,5,C.ink)+e(x-1,y-1,1,1.5,C.white)).join(''),'','character-pupils pet-pupils')}
+const petArt={
+ cat:()=>shadow(46)+g(g(p('M34-17q48 1 39-39','none',C.ink,13)+p('M34-17q48 1 39-39','none','#dfb48e',7),'','pet-tail')+e(0,-27,42,29,'#dfb48e',C.ink)+e(-21,-7,17,8,C.cream,C.ink)+e(21,-7,17,8,C.cream,C.ink)+p('M-34-57l-1-34 26 22m18 0 26-22-1 34','#dfb48e')+p('M-29-72v-10l10 11m39-1 9-10v10',C.pink,C.ink,2)+r(-37,-70,74,53,'#dfb48e',22)+petEyes([-16,16],-49)+p('M-4-35l4 4 4-4Z',C.coral)+p('M0-31v6m-8-2q8 9 16 0m-36-13-19-4m19 12-19 1m59-9 19-4m-19 12 19 1','none',C.ink,2),'','cat-breathe'),
+ dog:()=>shadow(63)+g(g(p('M44-32q41-38 39-9','none',C.ink,14)+p('M44-32q41-38 39-9','none',C.wood,8),'','pet-tail')+e(7,-34,48,29,C.wood,C.ink)+[-26,30].map(x=>g(r(x,-29,18,29,C.cream,7),'','pet-leg')).join('')+e(-24,-76,40,33,'#edbd85',C.ink)+g(e(-57,-77,14,33,'#a77a59',C.ink)+e(8,-77,14,33,'#a77a59',C.ink),'','pet-ears')+petEyes([-38,-13],-81)+e(-25,-60,24,15,C.cream)+e(-25,-65,7,5,C.ink)+p('M-25-60v7m-10-1q10 11 20 0','none',C.ink,2)+p('M-23-49q9 11 11-3',C.coral,C.ink,2)+p('M-44-39l38 5','none',C.mint,7),'','pet-breathe'),
+ rabbit:()=>shadow(41)+g(e(0,-34,36,33,C.cream,C.ink)+g(e(-16,-108,12,43,C.cream,C.ink)+e(16,-108,12,43,C.cream,C.ink)+e(-16,-111,5,28,C.pink)+e(16,-111,5,28,C.pink),'','pet-ears')+e(0,-64,34,28,C.cream,C.ink)+petEyes([-13,13],-68)+p('M-4-54l4 4 4-4Z',C.coral)+p('M0-50v7m-9-2q9 8 18 0','none',C.ink,2)+e(-17,-7,17,8,C.cream,C.ink)+e(17,-7,17,8,C.cream,C.ink)+e(34,-25,12,12,C.white,C.ink)+e(-23,-53,5,3,C.pink)+e(23,-53,5,3,C.pink),'','pet-breathe'),
+ fishbowl:()=>shadow(87)+r(-87,-99,174,98,C.sky,12)+r(-80,-82,160,72,'#a8dce3',7,'none')+p('M-79-12q20-12 40 0t40 0 40 0 40 0v10H-79Z','#edbd85','none')+p('M-58-13q-18-35-2-54m5 51q20-28 2-40','none',C.mint,5)+g(p('M0-47l-17-11v22Z',C.coral,C.ink,2)+e(20,-47,23,13,C.coral,C.ink,2)+e(32,-50,5,6,C.white,C.ink,1)+g(e(33,-50,2.4,3.2,C.ink),'','character-pupils pet-pupils'),'','fish-swim')+g(e(52,-64,4,4,'none',C.white,2)+e(43,-78,3,3,'none',C.white,2),'','bubbles')+r(-92,-105,184,12,C.mint,5)
+};
+const seasonal={
+ 'halloween-pumpkin':()=>shadow(60)+p('M0-88q-4-23 13-23','none',C.deep,7)+e(0,-43,59,45,C.coral,C.ink)+e(0,-43,27,45,'#f5ba80',C.ink,2)+p('M-34-47l15-18 8 20Zm45 2 8-20 15 18ZM-29-26q29 30 58 0l-10 23h-38Z',C.yellow,C.ink,2),
+ 'halloween-ghost':()=>p('M-54 0v-70q0-75 54-75t54 75V0L34-16 17 0 0-16-17 0-34-16Z',C.white)+petEyes([-18,18],-81)+p('M-10-51q10 13 20 0','none',C.ink,3)+e(-35,-57,8,4,C.pink)+e(35,-57,8,4,C.pink),
+ 'halloween-bats':()=>p('M-160-25Q0 30 160-25','none',C.ink,3)+[-110,0,110].map(x=>g(p('M0-8l-28-20-20 25 23-1 10 16L0 6 15 12 25-4l23 1-20-25Z',C.purple,C.ink,2)+e(-5,-1,2,3,C.white)+e(5,-1,2,3,C.white),`translate(${x} 0)`)).join(''),
+ 'halloween-candy':()=>e(0,-25,53,17,C.purple,C.ink)+p('M-53-25q8 57 53 57t53-57Z',C.purple)+[-25,0,25].map((x,i)=>g(p('M-10-10l-10-7v24l10-7m20-10 10-7v24L10 0',C.coral,C.ink,2)+r(-11,-14,22,24,[C.yellow,C.sky,C.pink][i],7),`translate(${x} -32)`)).join('')
+};
+function shell(home,wallpaper=0){const wall=wallpaper%3===1?'#e6efd8':wallpaper%3===2?'#e7dff0':home==='atelier'?'#eee2f1':home==='orchard'?'#ffe8d5':C.cream;
+return `<defs><clipPath id="k-outside"><path d="M80 535V185Q80 76 188 76h724q108 0 108 109v350Z"/></clipPath><radialGradient id="glow"><stop stop-color="#ffe5a0" stop-opacity=".8"/><stop offset="1" stop-color="#ffe5a0" stop-opacity="0"/></radialGradient></defs>`+r(0,0,1600,900,wall,0,'none')+`<g clip-path="url(#k-outside)">`+r(80,76,940,460,C.sky,0,'none')+p('M0 400q150-150 320-32 134-120 298-5 192-167 442 16v240H0Z','#a4cc9a','none')+p('M0 470q186-110 366-14 143-83 307-21 171-95 400 0v190H0Z','#79ad93','none')+'<g id="tree-layer"></g></g>'+r(0,535,1600,65,'#c4ddcb',0,'none')+Array.from({length:24},(_,i)=>p(`M${i*70} 540v60`,'none','#98bbaa',2)).join('')+r(0,535,1600,12,C.mint,0,C.ink,3)+r(0,596,1600,304,'#e9bc91',0,'none')+r(0,590,1600,12,C.deep,0,C.ink,3)+[648,712,791,881].map(y=>p(`M0 ${y}h1600`,'none','#c39370',2)).join('')+Array.from({length:10},(_,i)=>p(`M${i*190-70} 602l${(i-4)*27} 298`,'none','#c39370',2)).join('')+[83,310,902,1100,1450].map((x,i)=>p(`M${x} ${686+i%2*81}q17-4 37 0m-25 6h15`,'none','#cd9c73',2)).join('');
+}
+function houseArt(h){return p('M-72 0v-90H72V0Z',C.cream)+p('M-88-90 0-149 88-90Z',h.color)+r(-20,-62,40,62,h.color,17)+r(-58,-64,26,30,C.sky,7)+r(32,-64,26,30,C.sky,7)+p('M-45-62v26m-11-13h22m45-13v26m-11-13h22','none',C.cream,2)+p('M-83 0H83','none',C.ink,5)+e(0,-111,10,10,C.yellow,C.ink,2)}
+function art(id){const s=A.chars.has(id)?character(id):id==='dachs'?badger():props[id]?.()||petArt[id]?.()||seasonal[id]?.();return s?g(s,'','k-art'):''}
+for(const id of A.chars)A.bounds[id]=[-80,-250,160,265];
+Object.assign(A.bounds,{mo:[-80,-266,160,280],pippa:[-80,-255,160,270],dachs:[-80,-240,160,255],sofa:[-172,-163,344,185],tea:[-38,-90,88,105],plant:[-66,-178,132,195],flower:[-62,-166,124,180],cat:[-54,-98,139,112]});
+A.homes.forEach((h,i)=>h.color=[C.mint,C.purple,C.coral][i]);
+window.KunterbuntArt={art,character,badger,shell,ids:[...A.chars,'dachs',...Object.keys(props),...Object.keys(petArt),...Object.keys(seasonal)]};
+window.WorldArt=Object.freeze({...A,art,badger,shell,houseArt});
+window.LerndachsPeopleArt.art=id=>A.chars.has(id)?art(id):'';
+window.LerndachsWorld.petArt=id=>petArt[id]?art(id):'';
+})();
