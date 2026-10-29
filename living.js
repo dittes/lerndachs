@@ -29,7 +29,7 @@ document.addEventListener('pointerout',e=>{const node=e.target.closest(hoverSele
 document.addEventListener('focusin',e=>{const node=e.target.closest(hoverSelector);if(node)hoverPreview(node)});
 // Move the sprite only. Dragging, saving, or changing rooms never changes its home coordinates.
 function roam(){if(document.hidden||quiet()||document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging'))return;
- const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
+ const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"],#objects [data-kind="hamster"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
  const o=Lernwelt.find(node.dataset.kind),dx=o?.x>1300?-85:o?.x<150?85:Math.random()<.5?-85:85;
  animate(node.querySelector('.sprite'),[{transform:'translate(0,0)'},{transform:`translate(${dx/2}px,-7px)`,offset:.15},{transform:`translate(${dx}px,0)`,offset:.3},{transform:`translate(${dx}px,-5px)`,offset:.5},{transform:`translate(${dx/2}px,-7px)`,offset:.75},{transform:'translate(0,0)'}],{duration:6500,easing:'ease-in-out'});setTimeout(()=>{if(node.isConnected)gesture(node,'dance')},2100);
 }
@@ -60,7 +60,7 @@ window.addEventListener('stars-earned',({detail})=>{
  if(quiet()){star.remove();finish();continue}const dx=dest.left+dest.width/2-x,dy=dest.top+dest.height/2-y;
  const bend=90+(i%5)*18,side=dx>=0?-1:1,cx=dx*.45+side*bend,cy=dy*.4-100-(i%3)*20;
  const frames=Array.from({length:41},(_,step)=>{const t=step/40,px=2*(1-t)*t*cx+t*t*dx,py=2*(1-t)*t*cy+t*t*dy;return {offset:t,transform:`translate(calc(-50% + ${px}px),calc(-50% + ${py}px)) rotate(${(i%2?1:-1)*t*180}deg) scale(${.55+Math.sin(t*Math.PI)*.55})`,opacity:Math.min(1,t*8)}});
- const a=animate(star,frames,{duration:2100+i%3*120,delay:i*65,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
+ const a=animate(star,frames,{duration:3400+i%3*180,delay:i*95,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
  }
  });
 });
@@ -91,7 +91,9 @@ function departure(){
 function visit(reason='invite'){
  if(document.hidden||document.querySelector('dialog[open]'))return;
  const serial=++visitSerial;clearTimeout(leaveTimer);clearTimeout(arrivalTimer);visitor.getAnimations().forEach(a=>a.cancel());stopWalking();visitor.hidden=false;visiting=true;visitor.querySelector('svg').style.transform='';
- const daily=!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
+ if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;
+ const eligible=!J.profile.firstVisitDay||day()>J.profile.firstVisitDay;
+ const daily=eligible&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
  visitor.querySelector('p').textContent=reason==='success'?'Geschafft! Das haben wir toll gemacht!':daily?'Schön, dass du da bist! Ich schenke dir heute 25 Sterne. Magst du mit einem Rätsel noch mehr verdienen?':'Hallo! Magst du mit mir eine Aufgabe lösen und Sterne sammeln?';
  visitor.querySelector('.visit-speech > div').hidden=reason==='success';
  const duration=2200,distance=visitor.getBoundingClientRect().left+visitor.querySelector('svg').getBoundingClientRect().width+30;
@@ -104,7 +106,7 @@ visitor.querySelector('#visit-play').onclick=()=>{departure();if(J.profile.openi
 window.addEventListener('task-waiting',()=>visit());
 window.addEventListener('learning-success',()=>{celebrateAfterTask=true;const content=document.querySelector('#learning-content');content.querySelector('.success-friends')?.remove();const team=document.createElement('div');team.className='success-friends';team.setAttribute('aria-label','Dachs und deine Figur springen vor Freude');const player=J.player();team.innerHTML=`<svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>${player?`<svg viewBox="-100 -260 200 280" aria-hidden="true">${J.art(player.id,undefined,player.appearance)}</svg>`:''}`;content.querySelector('#answer-feedback')?.after(team);team.querySelectorAll('svg').forEach(n=>gesture(n));});
 document.querySelector('#learning-dialog').addEventListener('close',()=>{if(celebrateAfterTask){celebrateAfterTask=false;setTimeout(()=>visit('success'),250)}});
-function welcome(){if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
+function welcome(){if(J.profile.firstVisitDay&&day()<=J.profile.firstVisitDay)return;if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
 setTimeout(welcome,1800);setInterval(welcome,30000);window.addEventListener('opening-changed',()=>setTimeout(welcome,1200));
 window.LerndachsLiving={visit,departure,roam,gesture};
 })();

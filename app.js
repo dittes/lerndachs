@@ -226,9 +226,9 @@ function character(id){const v=variants[id]||{base:'milo'},base=v.base;let s=K.p
  return g(s.replaceAll('data-person=', 'data-character-art='),'scale(.86)','k-cast');
 }
 function badger(pose='standing'){const fur='#9ba4a1',mask='#49515b';let head=e(-46,-104,19,20,fur,C.ink)+e(46,-104,19,20,fur,C.ink)+e(-46,-104,10,11,C.pink)+e(46,-104,10,11,C.pink)+p('M-60-70q0-46 47-49l13-12 13 12q47 3 47 49v12Q57-9 0-10-57-9-60-58Z',C.cream)+p('M-45-103q22 8 28 30l-7 36q-30-8-31-31-3-22 10-35Zm90 0q-22 8-28 30l7 36q30-8 31-31 3-22-10-35Z',mask,'none');
- head+=pose==='curled'?p('M-36-65q9 8 18 0m36 0q9 8 18 0','none',C.ink,3):e(-27,-66,10,12,C.white)+e(27,-66,10,12,C.white)+g(e(-27,-65,4.5,7,C.ink)+e(27,-65,4.5,7,C.ink),'','character-pupils');head+=e(-39,-39,9,4,C.pink)+e(39,-39,9,4,C.pink)+p('M-10-42q10-4 20 0-2 12-10 12t-10-12Z',C.ink)+p('M0-30v6m-13-3q13 13 26 0','none',C.ink,2.5);
+ head+=pose==='curled'?g(p('M-36-65q9 8 18 0m36 0q9 8 18 0','none',C.ink,3),'','badger-eyes-closed'):e(-27,-66,10,12,C.white)+e(27,-66,10,12,C.white)+g(e(-27,-65,4.5,7,C.ink)+e(27,-65,4.5,7,C.ink),'','character-pupils');head+=e(-39,-39,9,4,C.pink)+e(39,-39,9,4,C.pink)+p('M-10-42q10-4 20 0-2 12-10 12t-10-12Z',C.ink)+p('M0-30v6m-13-3q13 13 26 0','none',C.ink,2.5);
  if(pose==='portrait')return head;
- if(pose==='curled')return '<g class="badger-body badger-curled">'+shadow(62)+e(6,-38,62,40,fur,C.ink)+e(19,-39,37,24,C.cream)+g(head,'translate(-27 6) scale(.59)')+p('M36-63q44 8 26 44','none',C.ink,13)+p('M36-63q44 8 26 44','none',fur,7)+'</g>';
+ if(pose==='curled'||pose==='waking')return '<g class="badger-body badger-curled">'+shadow(62)+e(6,-38,62,40,fur,C.ink)+e(19,-39,37,24,C.cream)+g(head,'translate(-27 6) scale(.59)','badger-sleep-head')+p('M36-63q44 8 26 44','none',C.ink,13)+p('M36-63q44 8 26 44','none',fur,7)+'</g>';
  return shadow(51)+g(
  [-1,1].map(sign=>g(p(`M${sign*22}-40v29`,'none',C.ink,22)+p(`M${sign*22}-40v29`,'none',fur,15)+e(sign*26,-8,22,10,fur,C.ink)+p(`M${sign*26-5}-7v4m10-4v4`,'none',C.ink,1.6),'',`badger-leg ${sign<0?'left':'right'}`)).join('')+
  e(0,-68,43,53,fur,C.ink)+e(0,-65,25,32,C.cream)+
@@ -301,9 +301,9 @@ window.LerndachsWorld.petArt=id=>petArt[id]?art(id):'';
 ;
 /* Original Kunterbunt wardrobe: composable SVG assets, no external image requests. */
 (()=>{'use strict';const K=KunterbuntShapes,{C,p,e,r,g}=K;
-const colors={skin:[['#f4d5ba','Porzellan'],['#f4c59d','Pfirsich'],['#dba579','Honig'],['#c28a64','Karamell'],['#a86f4d','Kastanie'],['#875b43','Kakao'],['#684637','Mokka'],['#49352f','Espresso']],hair:[['#302e33','Schwarz'],['#48443e','Dunkelbraun'],['#8c5d42','Braun'],['#bf7c4b','Kupfer'],['#e7bf72','Blond'],['#e6e2d8','Silber'],['#67546e','Pflaume'],['#d58eae','Rosa'],['#4b978b','Türkis']],fabric:[['#fff3d7','Vanille'],['#79c5ad','Mint'],['#4b978b','Petrol'],['#f29880','Koralle'],['#f6cc72','Sonnengelb'],['#b4a4d3','Lavendel'],['#bde4e8','Himmelblau'],['#eeb5ca','Rosa'],['#48443e','Dunkelbraun']]};
+const colors={skin:[['#f4d5ba','Porzellan'],['#f4c59d','Pfirsich'],['#dba579','Honig'],['#c28a64','Karamell'],['#a86f4d','Kastanie'],['#875b43','Kakao'],['#684637','Mokka'],['#49352f','Espresso']],hair:[['#302e33','Schwarz'],['#48443e','Dunkelbraun'],['#8c5d42','Braun'],['#bf7c4b','Kupfer'],['#e7bf72','Blond'],['#e6e2d8','Silber'],['#67546e','Pflaume'],['#d58eae','Rosa'],['#4b978b','Türkis']],fabric:[['#dc635b','Rot'],['#fff3d7','Vanille'],['#79c5ad','Mint'],['#4b978b','Petrol'],['#f29880','Koralle'],['#f6cc72','Sonnengelb'],['#b4a4d3','Lavendel'],['#bde4e8','Himmelblau'],['#eeb5ca','Rosa'],['#48443e','Dunkelbraun']]};
 const choices={hairStyle:[['curly','Locken'],['short','Kurz'],['bob','Bob'],['long','Lang'],['bun','Dutt']],outfit:[['overalls','Latzhose'],['shirt','Shirt & Hose'],['dress','Kleid'],['hoodie','Hoodie']],makeup:[['none','Ohne'],['blush','Wangenrot'],['freckles','Sommersprossen'],['stars','Sternchen'],['hearts','Herzchen']],headwear:[['none','Ohne'],['bow','Schleife'],['flower','Blume'],['cap','Kappe'],['headband','Haarband']],eyewear:[['none','Ohne'],['round','Runde Brille'],['square','Eckige Brille']]};
-const bases={milo:{skin:'#c28a64',hair:'#48443e',hairStyle:'curly',outfit:'overalls',top:C.cream,bottom:C.mint,shoes:C.coral},lumi:{skin:'#f4c59d',hair:'#67546e',hairStyle:'long',outfit:'dress',top:C.coral,bottom:C.purple,shoes:C.purple,headwear:'bow'},nia:{skin:'#c28a64',hair:'#302e33',hairStyle:'bun',outfit:'dress',top:C.purple,bottom:C.purple,shoes:C.mint,eyewear:'round'},jona:{skin:'#f4c59d',hair:'#bf7c4b',hairStyle:'short',outfit:'overalls',top:C.sky,bottom:C.mint,shoes:C.coral,headwear:'cap'},sami:{skin:'#875b43',hair:'#302e33',hairStyle:'curly',outfit:'overalls',top:C.yellow,bottom:C.mint,shoes:C.coral},ella:{skin:'#f4c59d',hair:'#bf7c4b',hairStyle:'bob',outfit:'dress',top:C.mint,bottom:C.purple,shoes:C.purple,headwear:'flower'},pippa:{skin:'#e5a06c'},mo:{skin:'#a4cc78'}};
+const bases={milo:{skin:'#c28a64',hair:'#e7bf72',hairStyle:'curly',outfit:'hoodie',top:'#dc635b',bottom:C.deep,shoes:C.cream},lumi:{skin:'#f4c59d',hair:'#67546e',hairStyle:'long',outfit:'dress',top:C.coral,bottom:C.purple,shoes:C.purple,headwear:'bow'},nia:{skin:'#c28a64',hair:'#302e33',hairStyle:'bun',outfit:'dress',top:C.purple,bottom:C.purple,shoes:C.mint,eyewear:'round'},jona:{skin:'#f4c59d',hair:'#bf7c4b',hairStyle:'short',outfit:'overalls',top:C.sky,bottom:C.mint,shoes:C.coral,headwear:'cap'},sami:{skin:'#875b43',hair:'#302e33',hairStyle:'curly',outfit:'overalls',top:C.yellow,bottom:C.mint,shoes:C.coral},ella:{skin:'#f4c59d',hair:'#bf7c4b',hairStyle:'bob',outfit:'dress',top:C.mint,bottom:C.purple,shoes:C.purple,headwear:'flower'},pippa:{skin:'#e5a06c'},mo:{skin:'#a4cc78'}};
 function defaults(id){return {skin:C.skinM,hair:C.hairM,hairStyle:'curly',outfit:'overalls',top:C.cream,bottom:C.mint,shoes:C.coral,makeup:'none',headwear:'none',eyewear:'none',...bases[id]}}
 function normalize(id,input){const d=defaults(id),a={...d};if(!input||typeof input!=='object')return a;for(const key of Object.keys(choices))if(choices[key].some(([v])=>v===input[key]))a[key]=input[key];for(const key of ['skin','hair','top','bottom','shoes'])if((colors[key]||colors.fabric).some(([v])=>v===input[key]))a[key]=input[key];return a}
 const star=(x,y,z=.22)=>g(p('M0-20 6-6 21-5 10 5 13 20 0 12-13 20-10 5-21-5-6-6Z',C.yellow,C.ink,2),`translate(${x} ${y}) scale(${z})`);
@@ -388,6 +388,66 @@ window.LerndachsPetsArt={art,ids:Object.keys(renderers),bounds};
 (()=>{const pets=LerndachsPetsArt,previous=WorldArt,prior=KunterbuntArt.art;Object.assign(previous.bounds,pets.bounds);KunterbuntArt.art=id=>pets.art(id)||prior(id);LerndachsWorld.petArt=id=>pets.art(id);window.WorldArt=Object.freeze({...previous,art:(id,...args)=>pets.art(id)||previous.art(id,...args)});})();
 
 ;
+/* Original small Kunterbunt hamster. Load after kunterbunt-shapes.js.
+ * Artwork only; catalogue, routing and animation policy belong to the caller.
+ */
+(()=>{
+'use strict';
+const {C,p,e,g}=window.KunterbuntShapes;
+const group=(content,cls)=>g(content,'',cls);
+
+function hamster(){
+ const ears=group(
+  e(-27,-75,11,12,C.yellow,C.ink,3)+e(27,-75,11,12,C.yellow,C.ink,3)+
+  e(-27,-75,5.5,6.5,C.pink)+e(27,-75,5.5,6.5,C.pink),
+  'pet-ears');
+ // A single plump outline keeps the tiny companion legible at room scale.
+ const body=p('M-30-68Q-21-79 0-79 21-79 30-68 35-60 36-52 47-41 42-25 39-10 23-5 0 2-23-5-39-10-42-25-47-41-36-52-35-60-30-68Z',C.yellow)+
+  p('M-37-44Q-28-52-16-44-6-38 0-39 6-38 16-44 28-52 37-44 44-32 32-20 27-6 0-5-27-6-32-20-44-32-37-44Z',C.cream,'none')+
+  p('M-6-74q3 5 2 9m8-9q2 3 1 6','none','#dca85e',2.5);
+ const eyeWhites=e(-16,-53,8,9.5,C.white,C.ink,2.3)+e(16,-53,8,9.5,C.white,C.ink,2.3);
+ const pupils=group(
+  [-16,16].map(x=>e(x+.5,-52,3.9,5.6,C.ink)+e(x-1,-54,1.3,1.6,C.white)).join(''),
+  'character-pupils pet-pupils');
+ const face=eyeWhites+pupils+
+  e(-29,-38,6.5,4,C.pink)+e(29,-38,6.5,4,C.pink)+
+  p('M-4-40Q0-43 4-40L0-36Z',C.coral,C.ink,1.8)+
+  p('M0-36v4m-8-1q4 5 8 1 4 4 8-1','none',C.ink,1.9)+
+  p('M-3-30h6v5q-3 2-6 0Z',C.white,C.ink,1.6)+
+  p('M-34-40l-10-3m10 9-11 1m79-7 10-3m-10 9 11 1','none',C.ink,1.7);
+ const seed=group(
+  p('M0-28Q11-21 8-12 5-5 0-4-5-5-8-12-11-21 0-28Z',C.wood,C.ink,2.2)+
+  p('M0-24Q-3-14 0-8','none',C.cream,2.2),
+  'hamster-seed');
+ const hands=group(
+  e(-10,-17,7,5,C.cream,C.ink,2.2)+e(10,-17,7,5,C.cream,C.ink,2.2)+
+  p('M-10-17l3 1m17-1-3 1','none',C.ink,1.4),
+  'hamster-paws');
+ const feet=[-19,19].map(x=>group(
+  e(x,-4,10,5.5,C.cream,C.ink,2.5)+
+  p(`M${x-2}-3v2m4-2v2`,'none',C.ink,1.5),
+  'pet-leg')).join('');
+ return e(0,4,37,5,'#363c4819')+
+  group(ears+body+face+seed+hands+feet,'pet-breathe');
+}
+function art(id){return id==='hamster'?group(hamster(),'k-art pets-art pet-hamster'):''}
+window.LerndachsHamsterArt={art,bounds:{hamster:[-49,-91,98,102]}};
+})();
+
+;
+/* Original terrace, garden, radio shelf and the small hamster extend the same world. */
+(()=>{'use strict';const K=KunterbuntShapes,{C,p,e,r,g}=K,old=WorldArt;
+const shelf=()=>p('M-103-9v102m206-102v102','none',C.ink,12)+p('M-103-9v102m206-102v102','none',C.wood,6)+r(-119,-22,238,17,C.wood,5)+r(-119,84,238,17,C.wood,5)+p('M-107-17h214m-214 106h214','none','#ffe0ad',3);
+old.decor.push({id:'radio-shelf',name:'Radioregal',note:'Ein Regal für Radio und Lieblingsdinge.',price:55,kind:'decor',repeatable:true});old.names['radio-shelf']='Radioregal';old.bounds['radio-shelf']=[-124,-29,248,142];
+const hamster={id:'hamster',name:'Hamster Pünktchen',note:'Ein kleiner Freund mit dicken Backen und neugierigen Augen.',price:280,kind:'pet'};old.decor.push(hamster);LerndachsWorld.pets.push(hamster);old.names.hamster=hamster.name;Object.assign(old.bounds,LerndachsHamsterArt.bounds);
+function art(id){return id==='radio-shelf'?g(shelf(),'','k-art'):id==='hamster'?LerndachsHamsterArt.art(id):id==='milo'?LerndachsAvatar.art('milo',LerndachsAvatar.defaults('milo')):''}
+function outdoors(){return `<g class="outdoors"><rect x="1600" width="2000" height="900" fill="#bde4e8"/>${e(3130,120,57,57,C.yellow)}${p('M1600 410q210-130 420-10t450-35 500-20 630 30V900H1600Z','#a4cc9a','none')}${p('M2250 570q350-160 675-20t675-25V900H2250Z','#79ad93','none')}${r(1600,510,800,390,'#dca577',0,'none')}${[560,620,680,740,800,860].map(y=>p(`M1600 ${y}h800`,'none','#b58464',2)).join('')}${[1650,1820,1990,2160,2330].map(x=>p(`M${x} 510l-65 390`,'none','#b58464',2)).join('')}${r(2385,610,1215,290,'#a4cc78',0,'none')}${p('M2420 900q120-160 300-160t150-130','none','#edcf9c',65)}${g(K.plant(),'translate(1730 650) scale(1.35)')}${g(K.sofa(),'translate(2080 695) scale(.7)')}${g(K.table(),'translate(2080 825) scale(.65)')}${p('M1600 507h800m-785-6V355m170 146V355m170 146V355m170 146V355m170 146V355m-680 1h680','none',C.ink,8)}${p('M1615 501V355m170 146V355m170 146V355m170 146V355m170 146V355m-680 1h680','none',C.cream,4)}${r(1593,0,15,510,C.wood,0,C.ink,3)}${g(KunterbuntArt.art('tree'),'translate(2730 575) scale(1.55)')}${g(KunterbuntArt.art('tree'),'translate(3360 590) scale(1.45)')}${[2550,2620,3100,3170,3240,3440].map((x,i)=>g(K.flower(0,0,.65),`translate(${x} ${775+i%2*55})`)).join('')}${r(2900,640,275,120,C.wood,15)}${r(2910,648,255,90,'#936c55',10)}${[2950,3020,3090].map(x=>g(p('M0 0v-28m0 10q-25-2-18-19 19-1 18 19m0-3q26-4 20-21-21 1-20 21',C.mint,C.ink,3),`translate(${x} 688)`)).join('')}${g(p('M-35 0q-30-55 10-65 25-33 52-3 30 28-12 68Z',C.mint)+p('M0 0v-57','none',C.deep,3),'translate(2500 620)')}${p('M2490 850l8-11m2 12 7-15m780 12 7-14m-1 17 9-11','none',C.deep,3)}<text x="1840" y="470" font-family="Arial,sans-serif" font-size="24" fill="#363c48">Terrasse</text><text x="2960" y="555" font-family="Arial,sans-serif" font-size="24" fill="#363c48">Garten</text></g>`}
+const priorK=KunterbuntArt.art;KunterbuntArt.art=id=>art(id)||priorK(id);const priorShell=old.shell;window.WorldArt=Object.freeze({...old,art:(id,...args)=>art(id)||old.art(id,...args),shell:(...args)=>priorShell(...args)+outdoors()});
+const empty=LerndachsWorld.empty;LerndachsWorld.empty=(home='garden')=>{const list=empty(home),radio=list.find(o=>o.id==='radio');if(radio){radio.x=1250;radio.y=390;radio.layer=2.9}list.push({id:'radio-shelf',uid:'radio-shelf-'+home,x:1250,y:412,s:1,layer:2.8});return list};
+window.LerndachsRoomExpansion={width:3600,migrate(state){for(const [home,list]of Object.entries(state.placed)){if(!state.radioShelfVersion){const radio=list.find(o=>o.id==='radio');if(radio){if(radio.x===1180&&radio.y===790){radio.x=1250;radio.y=390;radio.layer=2.9}if(!list.some(o=>o.id==='radio-shelf'))list.push({id:'radio-shelf',uid:'radio-shelf-'+home,x:radio.x,y:radio.y+22,s:1,layer:2.8})}}}if(!state.owned.includes('radio-shelf'))state.owned.push('radio-shelf');state.radioShelfVersion=1;for(const person of [...Object.values(state.placed).flat(),...Object.values(state.stored).flat()])if(person.id==='milo'&&person.appearance?.outfit==='overalls'&&person.appearance.hair==='#48443e'&&person.appearance.top==='#fff3d7')person.appearance=LerndachsAvatar.defaults('milo')}};
+})();
+
+;
 window.LerndachsBundleData=[
 {id:'cozy',name:'Gemütliches Zuhause',note:'Eine Leseecke und ein kuscheliger Schlafplatz.',price:300,items:['sofa','bed','table','rug','lamp','shelf','books','cushion','tea','cushion']},
 {id:'garden',name:'Grünes Glück',note:'Pflanzen, Blüten und ein Platz zum Zusammensitzen.',price:300,items:['plant','plant','plant','flower','flower','hanging','hanging','watering','basket','stool','stool','table','garland','tea']},
@@ -407,8 +467,10 @@ const allItems=[...cast,...decor,...homes];
 const item=id=>allItems.find(i=>i.id===id);
 const uid=()=>crypto.randomUUID();
 function fresh(){return {version:3,balance:0,owned:['garden','radio',...LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:LerndachsWorld.empty()},stored:{},receipts:[],journey:{grade:null,starterEarned:false,starterUnlocked:false,done:[],active:null,index:0,target:null,together:false,turn:1,worldMoves:[],practice:0,badges:[]}}}
-let state=fresh(),storageOK=true;
-try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===3&&saved.journey&&Number.isSafeInteger(saved.balance)&&saved.balance>=0&&Array.isArray(saved.owned)&&saved.placed&&saved.stored&&Array.isArray(saved.receipts)&&homes.some(h=>h.id===saved.home)){state=saved;state.journey={...fresh().journey,...saved.journey};state.wallpapers??={}}}catch{}
+let state=fresh(),storageOK=true,newWorld=true;
+try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===3&&saved.journey&&Number.isSafeInteger(saved.balance)&&saved.balance>=0&&Array.isArray(saved.owned)&&saved.placed&&saved.stored&&Array.isArray(saved.receipts)&&homes.some(h=>h.id===saved.home)){newWorld=false;state=saved;state.journey={...fresh().journey,...saved.journey};state.wallpapers??={}}}catch{}
+const visitDay=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+if(newWorld)Object.assign(state.journey,{onboardingVersion:2,opening:'curtain',firstVisitDay:visitDay()});
 // Existing friends are preserved. New worlds choose their sole first figure explicitly.
 const allPeople=()=>[...Object.values(state.placed).flat(),...Object.values(state.stored).flat()].filter(o=>chars.has(o.id));
 for(const person of allPeople())if(person.characterName==='undefined')person.characterName=item(person.id)?.name||'Freund';
@@ -434,6 +496,7 @@ for(const home of new Set([...Object.keys(state.placed),...Object.keys(state.sto
  state.placed[home]=(state.placed[home]||[]).filter(o=>o.id!=='window');state.placed[home].push(frame);
  if(state.stored[home])state.stored[home]=state.stored[home].filter(o=>o.id!=='window');
 }
+LerndachsRoomExpansion.migrate(state);
 const objectName=o=>o.characterName||o.petName||item(o.id)?.name||A.names[o.id]||'Objekt';
 let activePanel='',furnitureTab='props',sound=false,selected=null,drag=null,pan=null,audio;
 const reactions=new Map();
@@ -501,7 +564,7 @@ function pack(o){
  state.placed[home]=current().filter(x=>x.uid!==o.uid);delete o.carrier;stored().push(o);select(null);renderObjects();save();toast(`${item(o.id)?.name} ist in deiner Tasche.`,()=>{if(!state.stored[home].some(x=>x.uid===copy.uid))return;state.stored[home]=state.stored[home].filter(x=>x.uid!==copy.uid);state.placed[home].push(copy);if(state.home===home)renderObjects();save()});
 }
 function restore(uidToRestore){if(current().length>=120){toast('Packe erst etwas ein, damit Platz bleibt.');return}const o=stored().find(o=>o.uid===uidToRestore);if(!o)return;state.stored[state.home]=stored().filter(x=>x.uid!==uidToRestore);delete o.carrier;current().push(o);renderObjects();save();$('#panel').close();focusObject(o);effect(o);toast(`${item(o.id)?.name} ist wieder da.`)}
-function focusObject(o){const s=$('#scene-scroll'),scale=$('#world').clientWidth/1600;s.scrollTo({left:Math.max(0,o.x*scale-s.clientWidth/2),behavior:state.paused?'instant':'smooth'});select(o)}
+function focusObject(o){const s=$('#scene-scroll'),scale=$('#world').clientWidth/3600;s.scrollTo({left:Math.max(0,o.x*scale-s.clientWidth/2),behavior:state.paused?'instant':'smooth'});select(o)}
 function carryOrDrop(o){if(o.id==='window'||chars.has(o.id)||!bounds[o.id]||bounds[o.id][2]>165||['sun','cloud','hanging','balloon'].includes(o.id))return;const c=current().find(c=>chars.has(c.id)&&Math.abs(c.x-o.x)<72&&Math.abs(c.y-91-o.y)<72);if(c){o.carrier=c.uid;o.dx=o.x<c.x?-55:55;o.layer=5;syncCarried();effect(c)}}
 $('#world').addEventListener('pointerdown',e=>{
  const el=e.target.closest('.movable');if(!el||e.button>0||drag)return;e.preventDefault();e.stopPropagation();
@@ -517,7 +580,7 @@ function moveDraggedObject(e){
  if(!drag||e.pointerId!==drag.pointer)return;
  drag.latest=e;if(!drag.ready)return;
  const p=worldPoint(e);if(p.x!==drag.start.x||p.y!==drag.start.y)drag.moved=true;
- drag.o.x=Math.max(40,Math.min(1560,drag.ox+p.x-drag.start.x));drag.o.y=Math.max(85,Math.min(864,drag.oy+p.y-drag.start.y));drag.el.setAttribute('transform',transform(drag.o));syncCarried();for(const o of current().filter(o=>o.carrier===drag.o.uid))document.querySelector(`[data-uid="${o.uid}"]`)?.setAttribute('transform',transform(o));
+ drag.o.x=Math.max(40,Math.min(3560,drag.ox+p.x-drag.start.x));drag.o.y=Math.max(85,Math.min(864,drag.oy+p.y-drag.start.y));drag.el.setAttribute('transform',transform(drag.o));syncCarried();for(const o of current().filter(o=>o.carrier===drag.o.uid))document.querySelector(`[data-uid="${o.uid}"]`)?.setAttribute('transform',transform(o));
  $('#bag-button').classList.toggle('drop-ready',bagHit(e.clientX,e.clientY));const s=$('#scene-scroll');if(e.clientX<40)s.scrollLeft-=12;else if(e.clientX>innerWidth-40)s.scrollLeft+=12;
 
 }
@@ -534,7 +597,7 @@ function finishDrag(e){
 window.addEventListener('pointerup',finishDrag);window.addEventListener('pointercancel',finishDrag);
 $('#world').addEventListener('keydown',e=>{
  const el=e.target.closest('.movable');if(!el)return;const o=current().find(o=>o.uid===el.dataset.uid),delta={ArrowLeft:[-15,0],ArrowRight:[15,0],ArrowUp:[0,-15],ArrowDown:[0,15]}[e.key];select(o);
- if(delta){e.preventDefault();delete o.carrier;o.x=Math.max(40,Math.min(1560,o.x+delta[0]));o.y=Math.max(85,Math.min(864,o.y+delta[1]));carryOrDrop(o);el.setAttribute('transform',transform(o));syncCarried();for(const held of current().filter(x=>x.carrier===o.uid))document.querySelector(`[data-uid="${held.uid}"]`)?.setAttribute('transform',transform(held));save();window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:o.uid,id:o.id}}))}
+ if(delta){e.preventDefault();delete o.carrier;o.x=Math.max(40,Math.min(3560,o.x+delta[0]));o.y=Math.max(85,Math.min(864,o.y+delta[1]));carryOrDrop(o);el.setAttribute('transform',transform(o));syncCarried();for(const held of current().filter(x=>x.carrier===o.uid))document.querySelector(`[data-uid="${held.uid}"]`)?.setAttribute('transform',transform(held));save();window.dispatchEvent(new CustomEvent('world-move',{detail:{uid:o.uid,id:o.id}}))}
  if(e.key==='Enter'||e.key===' '){e.preventDefault();use(o)}if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();pack(o)}if(e.key==='Escape')select(null);
 });
 $('#world').addEventListener('focusin',e=>{const el=e.target.closest('.movable');if(el){const o=current().find(x=>x.uid===el.dataset.uid);select(o);focusObject(o)}});
@@ -546,7 +609,7 @@ scene.addEventListener('pointercancel',()=>{pan=null});
 function panButtons(){const s=$('#scene-scroll');$('#pan-left').disabled=s.scrollLeft<4;$('#pan-right').disabled=s.scrollLeft>s.scrollWidth-s.clientWidth-4}
 scene.addEventListener('scroll',()=>{panButtons();},{passive:true});window.addEventListener('resize',()=>{centerScene();panButtons()});
 $('#pan-left').onclick=()=>scene.scrollBy({left:-scene.clientWidth*.65,behavior:state.paused?'instant':'smooth'});$('#pan-right').onclick=()=>scene.scrollBy({left:scene.clientWidth*.65,behavior:state.paused?'instant':'smooth'});
-function centerScene(){const s=$('#scene-scroll');s.scrollLeft=Math.max(0,$('#world').clientWidth*.5-s.clientWidth/2);panButtons();}
+function centerScene(){const s=$('#scene-scroll');s.scrollLeft=Math.max(0,$('#world').clientWidth/3600*800-s.clientWidth/2);panButtons();}
 function chime(){if(window.WorldSound){WorldSound.effect('reward');return}if(!sound)return;try{audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();[523.25,659.25,783.99].forEach((hz,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.13;o.type='sine';o.frequency.value=hz;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.035,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.31)})}catch{}}
 const panelTitles={shop:['','Einrichten'],residents:['WER SPIELT HEUTE MIT?','Deine Figuren'],furniture:['','Einrichten'],map:['EIN NEUER ORT, EINE NEUE GESCHICHTE','Deine Nachbarschaft'],bag:['WEGGELEGT IST NICHT VERLOREN','Deine Tasche'],rewards:['','Deine Sterne'],help:['WILLKOMMEN BEI LERNDACHS','Einfach alles ausprobieren.']};
 function showPanel(type){if(!state.journey.starterUnlocked&&['shop','furniture','map','residents'].includes(type)){window.dispatchEvent(new Event('request-starter'));return}activePanel=type;$('#panel-title').textContent=panelTitles[type][1];renderPanel();if(!$('#panel').open)$('#panel').showModal();$('#panel-content button:not(:disabled)')?.focus({preventScroll:true});if(type==='rewards')window.LerndachsRewards?.open();if(['shop','furniture'].includes(type)){const wanted=item(state.journey.target);if(wanted&&wanted.price<=state.balance&&!state.owned.includes(wanted.id)){const tile=document.querySelector(`.furnishing-item[data-id="${wanted.id}"]`);tile?.focus({preventScroll:true});tile?.scrollIntoView?.({block:'center',behavior:'auto'})}}}
@@ -558,7 +621,7 @@ function card(i,type='decor',storedObject){const own=state.owned.includes(i.id),
  const displayName=storedObject?objectName(storedObject):current().find(o=>o.id===i.id)?.petName||i.name;
  return `<article class="item-card"><div class="item-art">${preview(storedObject?{...i,...storedObject}:i,isHouse)}</div><div class="item-body"><h3>${escapeText(displayName)}</h3>${activePanel==='shop'?'':`<p>${i.note||'Bereit für die nächste Geschichte.'}</p>`}<button data-action="${action}" data-id="${storedObject?.uid||i.id}" ${disabled?'disabled':''}>${label}</button></div></article>`;
 }
-const furnishingGroups=[['Sitzen & Schlafen',['sofa','bed','stool','cushion','blanket']],['Tische & Stauraum',['table','cabinet','shelf','basket']],['Küche & Alltag',['fridge','counter','tea','kettle','jar','toaster','fruit','cake']],['Licht & Technik',['lamp','pendant','garland','clock','fan','radio','camera']],['Pflanzen & Dekoration',['plant','flower','hanging','watering','rug','picture','poster','curtain','balloon']],['Musik & Kreativität',['guitar','books','easel']]];
+const furnishingGroups=[['Sitzen & Schlafen',['sofa','bed','stool','cushion','blanket']],['Tische & Stauraum',['table','cabinet','shelf','radio-shelf','basket']],['Küche & Alltag',['fridge','counter','tea','kettle','jar','toaster','fruit','cake']],['Licht & Technik',['lamp','pendant','garland','clock','fan','radio','camera']],['Pflanzen & Dekoration',['plant','flower','hanging','watering','rug','picture','poster','curtain','balloon']],['Musik & Kreativität',['guitar','books','easel']]];
 const furnishingIds=new Set(furnishingGroups.flatMap(([,ids])=>ids));
 function renderFurnishings(c){const intro=state.journey.opening!=='done',target=item(state.journey.target),missing=target?target.price-state.balance:0,groups=intro?[['Für deinen Einzug',LerndachsWorld.shopStock],...furnishingGroups.map(([name,ids])=>[name,ids.filter(id=>!LerndachsWorld.shopStock.includes(id))])]:furnishingGroups;c.innerHTML=`<div class="furnishing-balance" aria-label="Dein Guthaben">✦ ${state.balance}</div>${missing>0?`<div class="shop-invitation" role="status"><p>Noch ${missing} Sterne für ${escapeText(target.name)}.</p><button class="journey-primary" data-action="learn">Sterne sammeln</button></div>`:''}<div class="furnishing-catalogue first-shop">${groups.map(([name,ids])=>{const items=ids.map(item).filter(i=>i&&(!intro||state.owned.includes(i.id)||LerndachsWorld.shopStock.includes(i.id)));if(!items.length)return '';return `<section class="furnishing-category"><h3>${name}</h3><div class="furnishing-grid">${items.map(i=>{const own=state.owned.includes(i.id),action=own?'place':'buy';return `<button class="furnishing-item ${state.journey.target===i.id?'wish-item':''}" data-action="${action}" data-id="${i.id}" aria-label="${escapeText(i.name)}${own?' · anzeigen':', '+i.price+' Sterne'}"><span class="furnishing-art">${preview(i)}</span><span class="item-tooltip">${escapeText(i.name)}</span>${own?'':`<span class="item-price">${i.price} ✦</span>`}</button>`}).join('')}</div></section>`}).join('')}</div>`}
 function renderPanel(){const c=$('#panel-content');
@@ -591,7 +654,7 @@ $('#panel-content').addEventListener('click',e=>{const b=e.target.closest('butto
  if(action==='tidy'){const home=state.home,old=structuredClone({placed:current(),stored:stored()}),defaults=A.defaults(home);for(const o of [...current(),...stored()]){const d=defaults.find(d=>d.id===o.id);if(d){o.x=d.x;o.y=d.y}delete o.carrier}state.placed[home]=[...current(),...stored()];state.stored[home]=[];selected=null;render();$('#panel').close();toast('Deine vorhandenen Dinge sind aufgeräumt.',()=>{state.placed[home]=old.placed;state.stored[home]=old.stored;if(state.home===home)render();save()})}
  if(action==='fullscreen'){if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>toast('Vollbild ist hier nicht verfügbar.'))}
 });
-function place(id,purchased=false){if(!state.journey.starterUnlocked||!state.owned.includes(id))return;if(!purchased){const bag=stored().find(o=>o.id===id);if(bag){restore(bag.uid);return}const existing=current().find(o=>o.id===id);if(existing){$('#panel').close();focusObject(existing);toast('Das ist schon in deinem Zimmer. Weitere Exemplare gibt es im Laden.');return}const elsewhere=Object.values(state.placed).flat().some(o=>o.id===id)||Object.values(state.stored).flat().some(o=>o.id===id);if(elsewhere){toast('Das steht in einem anderen Zuhause. Besuche es über die Nachbarschaft.');return}}if(chars.has(id)&&current().some(o=>o.id===id))return;if(current().length>=120){toast('Ganz schön voll. Packe zuerst etwas ein.');return}const isPet=item(id)?.kind==='pet',x=(scene.scrollLeft+scene.clientWidth*(isPet?.28:.5))/$('#world').clientWidth*1600,o={uid:uid(),id,x,y:chars.has(id)?790:isPet?815:['picture','poster'].includes(id)?330:735,s:1,layer:isPet?4.1:A.layer(id)};current().push(o);renderObjects();save();$('#panel').close();select(o);effect(o)}
+function place(id,purchased=false){if(!state.journey.starterUnlocked||!state.owned.includes(id))return;if(!purchased){const bag=stored().find(o=>o.id===id);if(bag){restore(bag.uid);return}const existing=!item(id)?.repeatable&&current().find(o=>o.id===id);if(existing){$('#panel').close();focusObject(existing);toast('Das ist schon in deinem Zimmer. Weitere Exemplare gibt es im Laden.');return}const elsewhere=!item(id)?.repeatable&&Object.values(state.placed).flat().some(o=>o.id===id)||Object.values(state.stored).flat().some(o=>o.id===id);if(elsewhere){toast('Das steht in einem anderen Zuhause. Besuche es über die Nachbarschaft.');return}}if(chars.has(id)&&current().some(o=>o.id===id))return;if(current().length>=120){toast('Ganz schön voll. Packe zuerst etwas ein.');return}const isPet=item(id)?.kind==='pet',x=(scene.scrollLeft+scene.clientWidth*(isPet?.28:.5))/$('#world').clientWidth*3600,o={uid:uid(),id,x,y:chars.has(id)?790:isPet?815:['picture','poster'].includes(id)?330:735,s:1,layer:isPet?4.1:A.layer(id)};current().push(o);renderObjects();save();$('#panel').close();select(o);effect(o)}
 function credit(payload){const result=WunderEconomy.credit(state,payload);save();return result}
 window.Lerndachs=Object.freeze({version:3,getSnapshot:()=>structuredClone(state)});
 $('#map-button').onclick=()=>showPanel('map');$('#wallet').onclick=()=>showPanel('rewards');$('#help').onclick=()=>showPanel('help');$('#bag-button').onclick=()=>showPanel('bag');
@@ -4072,63 +4135,24 @@ button.onclick=open;window.LerndachsSeason={art,sync,open};sync();
 
 ;
 (()=>{
-const J=LerndachsJourney,p=J.profile,guide=document.querySelector('#room-guide');
-const lines={explore:'Schau dich um. Fass alles an!',couch:'Findest du das Sofa?',dachs:'Wo steckt Dachs?', 'move-in':'Gefunden! Wer zieht hier ein?',shop:'Willkommen! Such dir etwas aus.','second-item':'Was gefällt dir noch?',earn:'Für ein Rätsel gibt’s Sterne. Machst du mit?'};
-function show(){
- document.body.dataset.opening=p.opening;
- guide.hidden=p.opening==='done';
- if(guide.hidden)return;
- document.querySelector('#room-guide-text').textContent=lines[p.opening];
- const action=document.querySelector('#room-guide-action');
- action.hidden=['explore','dachs'].includes(p.opening);
- action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich!':p.opening==='earn'?'Sterne sammeln':'Einrichten';
- document.querySelector('#room-guide-read').hidden=!('speechSynthesis'in window);
-}
-function moveIn(){
- p.opening='shop';J.grantStarter();show();
-}
-function startLearning(){
- if(p.opening==='earn'||p.opening==='done'){
-  p.opening='done';J.save();show();Learning.nextFresh(true);
- }else show();
-}
-function hideBehindSofa(){
- const sofa=Lernwelt.find('sofa'),dachs=Lernwelt.find('dachs');
- if(sofa&&dachs){dachs.x=sofa.x+110*(sofa.s||1);dachs.y=sofa.y-130*(sofa.s||1);dachs.layer=2.9;dachs.pose='curled';J.render()}
-}
-function explore(id){
- if(p.opening==='explore'){
-  p.openingTouches=(p.openingTouches||0)+1;
-  if(p.openingTouches>=3){p.opening='couch';J.bring('sofa')}
- }else if(p.opening==='couch'&&id==='sofa'){
-  p.opening='dachs';hideBehindSofa();WorldSound.effect('dachs');
- }else if(p.opening==='dachs'&&id==='dachs'){
-  p.opening='move-in';const dachs=Lernwelt.find('dachs'),sofa=Lernwelt.find('sofa');dachs.x=sofa?sofa.x+260:1020;dachs.y=790;dachs.layer=4;dachs.pose='standing';J.render();WorldSound.effect('reward');window.dispatchEvent(new CustomEvent('learning-celebration',{detail:{kind:'stars'}}));
- }else return;
- J.save();show();
-}
-document.querySelector('#room-guide-action').onclick=()=>{
- if(p.opening==='couch'){J.bring('sofa');Lernwelt.focus('sofa')}
- else if(p.opening==='move-in'){if(J.player())moveIn();else LerndachsFriends.open('initial',moveIn)}
- else if(p.opening==='earn')startLearning();
- else J.showShop();
-};
-document.querySelector('#room-guide-read').onclick=()=>{
- speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(lines[p.opening]);speech.lang='de-DE';speech.rate=.85;speechSynthesis.speak(speech);
-};
-window.addEventListener('world-use',e=>setTimeout(()=>explore(e.detail.id),220));
-window.addEventListener('world-move',e=>{if(['explore','couch','dachs'].includes(p.opening)&&e.detail.id==='sofa')hideBehindSofa();explore(e.detail.id)});
-window.addEventListener('world-touch',()=>explore());
-window.addEventListener('request-opening',show);
-window.addEventListener('request-earn-stars',startLearning);
-window.addEventListener('opening-changed',show);
-document.querySelector('#welcome-hint').hidden=true;
-const dachs=Lernwelt.find('dachs');
-if(dachs&&!dachs.pose){
- if(['explore','couch','dachs'].includes(p.opening))hideBehindSofa();
- else{dachs.pose='standing';dachs.y=790;dachs.layer=4;J.render()}
-}
-show();
+const J=LerndachsJourney,p=J.profile,guide=document.querySelector('#room-guide'),modern=p.onboardingVersion===2;
+const quiet=()=>document.body.classList.contains('no-motion')||matchMedia('(prefers-reduced-motion:reduce)').matches;
+const lines={curtain:'',waking:'',explore:'Schau dich um. Fass alles an!',couch:'Findest du das Sofa?',dachs:'Wo steckt der Dachs?','move-in':'Gefunden! Wer zieht hier ein?',shop:'Willkommen! Such dir etwas aus.','second-item':'Was gefällt dir noch?',earn:'Für ein Rätsel gibt’s Sterne. Machst du mit?'};
+let voice,voiceQueue=Promise.resolve(),welcomed=false,waking=false,stage,stageTimer;
+function play(name){if(window.WorldSound?.status.enabled===false)return Promise.resolve(false);return new Promise(resolve=>{voice?.pause();voice=new Audio('audio/'+name+'.mp3');voice.volume=WorldSound?.status.volume??.6;voice.onended=()=>resolve(true);voice.onerror=()=>resolve(false);voice.play().then(()=>{if(name==='welcome')welcomed=true}).catch(()=>resolve(false))})}
+function enqueue(name){voiceQueue=voiceQueue.then(()=>play(name));return voiceQueue}
+function show(){document.body.dataset.opening=p.opening;guide.hidden=['curtain','waking','done'].includes(p.opening);if(guide.hidden)return;document.querySelector('#room-guide-text').textContent=lines[p.opening]||'';const action=document.querySelector('#room-guide-action');action.hidden=['explore','dachs'].includes(p.opening);action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich':p.opening==='earn'?'Sterne sammeln':'Einrichten';document.querySelector('#room-guide-read').hidden=false;guide.classList.toggle('found-speech',modern&&p.opening==='move-in')}
+function moveIn(){p.opening='shop';J.grantStarter();show()}
+function startLearning(){if(p.opening==='earn'||p.opening==='done'){p.opening='done';J.save();show();Learning.nextFresh(true)}else show()}
+function sleepBehindSofa(){const sofa=Lernwelt.find('sofa'),d=Lernwelt.find('dachs');if(sofa&&d){d.x=sofa.x-60;d.y=sofa.y-170;d.s=.9;d.layer=2.9;d.pose='curled';J.render()}}
+function awaken(){if(waking)return;waking=true;p.opening='waking';show();const d=Lernwelt.find('dachs'),sofa=Lernwelt.find('sofa');d.pose='waking';J.render();const head=document.querySelector('[data-kind="dachs"] .badger-sleep-head');if(!quiet())head?.animate([{filter:'brightness(.94)'},{filter:'brightness(1)'}],{duration:850});setTimeout(()=>{d.pose='standing';d.y=sofa?.y||680;J.render();const body=document.querySelector('[data-kind="dachs"] .badger-body');if(!quiet())body?.animate([{transform:'translateY(60px)'},{transform:'translateY(0)'}],{duration:650,easing:'ease-out'});setTimeout(()=>{const start={x:d.x,y:d.y};d.x=(sofa?.x||800)-90;d.y=790;d.s=1;d.layer=4;J.render();const node=document.querySelector(`[data-uid="${d.uid}"]`),sprite=node?.querySelector('.sprite'),gait=[];if(!quiet()){sprite?.animate([{transform:`translate(${start.x-d.x}px,${start.y-d.y}px)`},{transform:'translate(0,0)'}],{duration:1800,easing:'ease-in-out'});for(const leg of node?.querySelectorAll('.badger-leg')||[]){const sign=leg.classList.contains('left')?1:-1;gait.push(leg.animate([{transform:`rotate(${sign*22}deg)`},{transform:`rotate(${-sign*22}deg)`},{transform:`rotate(${sign*22}deg)`}],{duration:450,iterations:4}))}}setTimeout(()=>{gait.forEach(a=>a.cancel());p.opening='move-in';J.save();show();enqueue('found-you');enqueue('move-in');window.dispatchEvent(new Event('opening-changed'))},quiet()?0:1800)},quiet()?0:650)},quiet()?0:850)}
+function curtain(){sleepBehindSofa();stage=document.createElement('dialog');stage.id='stage-dialog';stage.setAttribute('aria-label','Willkommen bei Lerndachs');stage.innerHTML=`<div class="stage-peek"><svg viewBox="-85 -145 190 180" aria-hidden="true">${WorldArt.badger('portrait')}<g class="stage-wave"><ellipse cx="73" cy="-22" rx="16" ry="20" fill="#9ba4a1" stroke="#363c48" stroke-width="4"/><path d="M66-30v7m8-9v8m8-5v7" stroke="#363c48" stroke-width="2" stroke-linecap="round"/></g></svg></div><div class="curtain-panel curtain-left"></div><div class="curtain-panel curtain-right"></div><div class="curtain-valance"></div><div class="stage-greeting" hidden><p>Hallo, schön dass du da bist.<br>Wollen wir spielen?</p><div><button id="stage-yes">Ja</button><button id="stage-listen" aria-label="Begrüßung anhören">${icon('sound')}</button></div></div>`;document.body.append(stage);stage.addEventListener('cancel',e=>e.preventDefault());stage.showModal();function align(){const head=document.querySelector('[data-kind="dachs"] .badger-sleep-head'),box=head?.getBoundingClientRect();const x=Math.max(70,Math.min(innerWidth-70,box?box.x+box.width/2:innerWidth*.5)),y=Math.max(210,Math.min(innerHeight-150,box?box.y+box.height/2:innerHeight*.55));stage.style.setProperty('--seam',x+'px');stage.style.setProperty('--peek-y',y+'px')}align();window.addEventListener('resize',align);stageTimer=setTimeout(()=>{stage.classList.add('peeking');stage.querySelector('.stage-greeting').hidden=false;stage.querySelector('#stage-yes').focus({preventScroll:true});voiceQueue=play('welcome')},1500);stage.querySelector('#stage-listen').onclick=()=>{voiceQueue=play('welcome')};stage.querySelector('#stage-yes').onclick=()=>{clearTimeout(stageTimer);if(!welcomed)enqueue('welcome');p.opening='dachs';J.save();show();stage.classList.add('opening');setTimeout(()=>{stage.close();stage.remove();window.removeEventListener('resize',align);enqueue('find-dachs')},quiet()?0:1500)}}
+function explore(id){if(modern){if(p.opening==='dachs'&&id==='dachs')awaken();return}if(p.opening==='explore'){p.openingTouches=(p.openingTouches||0)+1;if(p.openingTouches>=3){p.opening='couch';J.bring('sofa')}}else if(p.opening==='couch'&&id==='sofa'){p.opening='dachs';sleepBehindSofa();WorldSound.effect('dachs')}else if(p.opening==='dachs'&&id==='dachs'){p.opening='move-in';const d=Lernwelt.find('dachs'),s=Lernwelt.find('sofa');d.x=s?s.x+260:1020;d.y=790;d.layer=4;d.pose='standing';J.render()}else return;J.save();show()}
+document.querySelector('#room-guide-action').onclick=()=>{if(p.opening==='couch'){J.bring('sofa');Lernwelt.focus('sofa')}else if(p.opening==='move-in'){if(J.player())moveIn();else LerndachsFriends.open('initial',moveIn)}else if(p.opening==='earn')startLearning();else J.showShop()};
+document.querySelector('#room-guide-read').onclick=()=>{if(p.opening==='dachs')enqueue('find-dachs');else if(p.opening==='move-in')enqueue('move-in');else if('speechSynthesis'in window){speechSynthesis.cancel();const s=new SpeechSynthesisUtterance(lines[p.opening]);s.lang='de-DE';s.rate=.85;speechSynthesis.speak(s)}};
+window.addEventListener('world-use',e=>setTimeout(()=>explore(e.detail.id),180));window.addEventListener('world-move',e=>{if(!modern){if(['explore','couch','dachs'].includes(p.opening)&&e.detail.id==='sofa')sleepBehindSofa();explore(e.detail.id)}});window.addEventListener('world-touch',()=>{if(!modern)explore()});window.addEventListener('request-opening',show);window.addEventListener('request-earn-stars',startLearning);window.addEventListener('opening-changed',show);window.addEventListener('world-saved',()=>{if(voice&&WorldSound?.status.enabled===false)voice.pause()});
+document.querySelector('#welcome-hint').hidden=true;if(modern&&p.opening==='curtain')curtain();else if(modern&&p.opening==='waking'){p.opening='dachs';sleepBehindSofa()}else if(modern&&p.opening==='dachs')sleepBehindSofa();else{const d=Lernwelt.find('dachs');if(d&&!d.pose){if(['explore','couch','dachs'].includes(p.opening))sleepBehindSofa();else{d.pose='standing';d.y=790;d.layer=4;J.render()}}}show();
+window.LerndachsOnboarding={replay:()=>enqueue(p.opening==='dachs'?'find-dachs':'move-in')};
 })();
 
 ;
@@ -4180,7 +4204,7 @@ document.addEventListener('pointerout',e=>{const node=e.target.closest(hoverSele
 document.addEventListener('focusin',e=>{const node=e.target.closest(hoverSelector);if(node)hoverPreview(node)});
 // Move the sprite only. Dragging, saving, or changing rooms never changes its home coordinates.
 function roam(){if(document.hidden||quiet()||document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging'))return;
- const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
+ const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"],#objects [data-kind="hamster"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
  const o=Lernwelt.find(node.dataset.kind),dx=o?.x>1300?-85:o?.x<150?85:Math.random()<.5?-85:85;
  animate(node.querySelector('.sprite'),[{transform:'translate(0,0)'},{transform:`translate(${dx/2}px,-7px)`,offset:.15},{transform:`translate(${dx}px,0)`,offset:.3},{transform:`translate(${dx}px,-5px)`,offset:.5},{transform:`translate(${dx/2}px,-7px)`,offset:.75},{transform:'translate(0,0)'}],{duration:6500,easing:'ease-in-out'});setTimeout(()=>{if(node.isConnected)gesture(node,'dance')},2100);
 }
@@ -4211,7 +4235,7 @@ window.addEventListener('stars-earned',({detail})=>{
  if(quiet()){star.remove();finish();continue}const dx=dest.left+dest.width/2-x,dy=dest.top+dest.height/2-y;
  const bend=90+(i%5)*18,side=dx>=0?-1:1,cx=dx*.45+side*bend,cy=dy*.4-100-(i%3)*20;
  const frames=Array.from({length:41},(_,step)=>{const t=step/40,px=2*(1-t)*t*cx+t*t*dx,py=2*(1-t)*t*cy+t*t*dy;return {offset:t,transform:`translate(calc(-50% + ${px}px),calc(-50% + ${py}px)) rotate(${(i%2?1:-1)*t*180}deg) scale(${.55+Math.sin(t*Math.PI)*.55})`,opacity:Math.min(1,t*8)}});
- const a=animate(star,frames,{duration:2100+i%3*120,delay:i*65,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
+ const a=animate(star,frames,{duration:3400+i%3*180,delay:i*95,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
  }
  });
 });
@@ -4242,7 +4266,9 @@ function departure(){
 function visit(reason='invite'){
  if(document.hidden||document.querySelector('dialog[open]'))return;
  const serial=++visitSerial;clearTimeout(leaveTimer);clearTimeout(arrivalTimer);visitor.getAnimations().forEach(a=>a.cancel());stopWalking();visitor.hidden=false;visiting=true;visitor.querySelector('svg').style.transform='';
- const daily=!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
+ if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;
+ const eligible=!J.profile.firstVisitDay||day()>J.profile.firstVisitDay;
+ const daily=eligible&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
  visitor.querySelector('p').textContent=reason==='success'?'Geschafft! Das haben wir toll gemacht!':daily?'Schön, dass du da bist! Ich schenke dir heute 25 Sterne. Magst du mit einem Rätsel noch mehr verdienen?':'Hallo! Magst du mit mir eine Aufgabe lösen und Sterne sammeln?';
  visitor.querySelector('.visit-speech > div').hidden=reason==='success';
  const duration=2200,distance=visitor.getBoundingClientRect().left+visitor.querySelector('svg').getBoundingClientRect().width+30;
@@ -4255,7 +4281,11 @@ visitor.querySelector('#visit-play').onclick=()=>{departure();if(J.profile.openi
 window.addEventListener('task-waiting',()=>visit());
 window.addEventListener('learning-success',()=>{celebrateAfterTask=true;const content=document.querySelector('#learning-content');content.querySelector('.success-friends')?.remove();const team=document.createElement('div');team.className='success-friends';team.setAttribute('aria-label','Dachs und deine Figur springen vor Freude');const player=J.player();team.innerHTML=`<svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>${player?`<svg viewBox="-100 -260 200 280" aria-hidden="true">${J.art(player.id,undefined,player.appearance)}</svg>`:''}`;content.querySelector('#answer-feedback')?.after(team);team.querySelectorAll('svg').forEach(n=>gesture(n));});
 document.querySelector('#learning-dialog').addEventListener('close',()=>{if(celebrateAfterTask){celebrateAfterTask=false;setTimeout(()=>visit('success'),250)}});
-function welcome(){if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
+function welcome(){if(J.profile.firstVisitDay&&day()<=J.profile.firstVisitDay)return;if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
 setTimeout(welcome,1800);setInterval(welcome,30000);window.addEventListener('opening-changed',()=>setTimeout(welcome,1200));
 window.LerndachsLiving={visit,departure,roam,gesture};
 })();
+
+;
+/* Modal chrome stays outside its independently scrolling content. */
+(()=>{let queued=false;const ids='#close-panel,#close-character,#adult-close,#learn-close,#schedule-close,#halloween-close';function tidy(){queued=false;for(const dialog of document.querySelectorAll('dialog[open]:not(#stage-dialog)')){const close=dialog.querySelector(ids);if(!close)continue;dialog.classList.add('fixed-menu');let scroll=dialog.querySelector(':scope > .menu-scroll-content');if(!scroll){scroll=document.createElement('div');scroll.className='menu-scroll-content';for(const child of [...dialog.childNodes])if(child!==close&&!child.classList?.contains('wallet-portal'))scroll.append(child);dialog.append(scroll)}if(close.parentElement!==dialog)dialog.append(close);for(const child of [...dialog.childNodes])if(child!==scroll&&child!==close&&!child.classList?.contains('wallet-portal'))scroll.append(child)}}new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(tidy)}}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});tidy()})();

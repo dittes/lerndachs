@@ -3398,63 +3398,24 @@ button.onclick=open;window.LerndachsSeason={art,sync,open};sync();
 
 ;
 (()=>{
-const J=LerndachsJourney,p=J.profile,guide=document.querySelector('#room-guide');
-const lines={explore:'Schau dich um. Fass alles an!',couch:'Findest du das Sofa?',dachs:'Wo steckt Dachs?', 'move-in':'Gefunden! Wer zieht hier ein?',shop:'Willkommen! Such dir etwas aus.','second-item':'Was gefällt dir noch?',earn:'Für ein Rätsel gibt’s Sterne. Machst du mit?'};
-function show(){
- document.body.dataset.opening=p.opening;
- guide.hidden=p.opening==='done';
- if(guide.hidden)return;
- document.querySelector('#room-guide-text').textContent=lines[p.opening];
- const action=document.querySelector('#room-guide-action');
- action.hidden=['explore','dachs'].includes(p.opening);
- action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich!':p.opening==='earn'?'Sterne sammeln':'Einrichten';
- document.querySelector('#room-guide-read').hidden=!('speechSynthesis'in window);
-}
-function moveIn(){
- p.opening='shop';J.grantStarter();show();
-}
-function startLearning(){
- if(p.opening==='earn'||p.opening==='done'){
-  p.opening='done';J.save();show();Learning.nextFresh(true);
- }else show();
-}
-function hideBehindSofa(){
- const sofa=Lernwelt.find('sofa'),dachs=Lernwelt.find('dachs');
- if(sofa&&dachs){dachs.x=sofa.x+110*(sofa.s||1);dachs.y=sofa.y-130*(sofa.s||1);dachs.layer=2.9;dachs.pose='curled';J.render()}
-}
-function explore(id){
- if(p.opening==='explore'){
-  p.openingTouches=(p.openingTouches||0)+1;
-  if(p.openingTouches>=3){p.opening='couch';J.bring('sofa')}
- }else if(p.opening==='couch'&&id==='sofa'){
-  p.opening='dachs';hideBehindSofa();WorldSound.effect('dachs');
- }else if(p.opening==='dachs'&&id==='dachs'){
-  p.opening='move-in';const dachs=Lernwelt.find('dachs'),sofa=Lernwelt.find('sofa');dachs.x=sofa?sofa.x+260:1020;dachs.y=790;dachs.layer=4;dachs.pose='standing';J.render();WorldSound.effect('reward');window.dispatchEvent(new CustomEvent('learning-celebration',{detail:{kind:'stars'}}));
- }else return;
- J.save();show();
-}
-document.querySelector('#room-guide-action').onclick=()=>{
- if(p.opening==='couch'){J.bring('sofa');Lernwelt.focus('sofa')}
- else if(p.opening==='move-in'){if(J.player())moveIn();else LerndachsFriends.open('initial',moveIn)}
- else if(p.opening==='earn')startLearning();
- else J.showShop();
-};
-document.querySelector('#room-guide-read').onclick=()=>{
- speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(lines[p.opening]);speech.lang='de-DE';speech.rate=.85;speechSynthesis.speak(speech);
-};
-window.addEventListener('world-use',e=>setTimeout(()=>explore(e.detail.id),220));
-window.addEventListener('world-move',e=>{if(['explore','couch','dachs'].includes(p.opening)&&e.detail.id==='sofa')hideBehindSofa();explore(e.detail.id)});
-window.addEventListener('world-touch',()=>explore());
-window.addEventListener('request-opening',show);
-window.addEventListener('request-earn-stars',startLearning);
-window.addEventListener('opening-changed',show);
-document.querySelector('#welcome-hint').hidden=true;
-const dachs=Lernwelt.find('dachs');
-if(dachs&&!dachs.pose){
- if(['explore','couch','dachs'].includes(p.opening))hideBehindSofa();
- else{dachs.pose='standing';dachs.y=790;dachs.layer=4;J.render()}
-}
-show();
+const J=LerndachsJourney,p=J.profile,guide=document.querySelector('#room-guide'),modern=p.onboardingVersion===2;
+const quiet=()=>document.body.classList.contains('no-motion')||matchMedia('(prefers-reduced-motion:reduce)').matches;
+const lines={curtain:'',waking:'',explore:'Schau dich um. Fass alles an!',couch:'Findest du das Sofa?',dachs:'Wo steckt der Dachs?','move-in':'Gefunden! Wer zieht hier ein?',shop:'Willkommen! Such dir etwas aus.','second-item':'Was gefällt dir noch?',earn:'Für ein Rätsel gibt’s Sterne. Machst du mit?'};
+let voice,voiceQueue=Promise.resolve(),welcomed=false,waking=false,stage,stageTimer;
+function play(name){if(window.WorldSound?.status.enabled===false)return Promise.resolve(false);return new Promise(resolve=>{voice?.pause();voice=new Audio('audio/'+name+'.mp3');voice.volume=WorldSound?.status.volume??.6;voice.onended=()=>resolve(true);voice.onerror=()=>resolve(false);voice.play().then(()=>{if(name==='welcome')welcomed=true}).catch(()=>resolve(false))})}
+function enqueue(name){voiceQueue=voiceQueue.then(()=>play(name));return voiceQueue}
+function show(){document.body.dataset.opening=p.opening;guide.hidden=['curtain','waking','done'].includes(p.opening);if(guide.hidden)return;document.querySelector('#room-guide-text').textContent=lines[p.opening]||'';const action=document.querySelector('#room-guide-action');action.hidden=['explore','dachs'].includes(p.opening);action.textContent=p.opening==='couch'?'Zeig mal':p.opening==='move-in'?'Ich':p.opening==='earn'?'Sterne sammeln':'Einrichten';document.querySelector('#room-guide-read').hidden=false;guide.classList.toggle('found-speech',modern&&p.opening==='move-in')}
+function moveIn(){p.opening='shop';J.grantStarter();show()}
+function startLearning(){if(p.opening==='earn'||p.opening==='done'){p.opening='done';J.save();show();Learning.nextFresh(true)}else show()}
+function sleepBehindSofa(){const sofa=Lernwelt.find('sofa'),d=Lernwelt.find('dachs');if(sofa&&d){d.x=sofa.x-60;d.y=sofa.y-170;d.s=.9;d.layer=2.9;d.pose='curled';J.render()}}
+function awaken(){if(waking)return;waking=true;p.opening='waking';show();const d=Lernwelt.find('dachs'),sofa=Lernwelt.find('sofa');d.pose='waking';J.render();const head=document.querySelector('[data-kind="dachs"] .badger-sleep-head');if(!quiet())head?.animate([{filter:'brightness(.94)'},{filter:'brightness(1)'}],{duration:850});setTimeout(()=>{d.pose='standing';d.y=sofa?.y||680;J.render();const body=document.querySelector('[data-kind="dachs"] .badger-body');if(!quiet())body?.animate([{transform:'translateY(60px)'},{transform:'translateY(0)'}],{duration:650,easing:'ease-out'});setTimeout(()=>{const start={x:d.x,y:d.y};d.x=(sofa?.x||800)-90;d.y=790;d.s=1;d.layer=4;J.render();const node=document.querySelector(`[data-uid="${d.uid}"]`),sprite=node?.querySelector('.sprite'),gait=[];if(!quiet()){sprite?.animate([{transform:`translate(${start.x-d.x}px,${start.y-d.y}px)`},{transform:'translate(0,0)'}],{duration:1800,easing:'ease-in-out'});for(const leg of node?.querySelectorAll('.badger-leg')||[]){const sign=leg.classList.contains('left')?1:-1;gait.push(leg.animate([{transform:`rotate(${sign*22}deg)`},{transform:`rotate(${-sign*22}deg)`},{transform:`rotate(${sign*22}deg)`}],{duration:450,iterations:4}))}}setTimeout(()=>{gait.forEach(a=>a.cancel());p.opening='move-in';J.save();show();enqueue('found-you');enqueue('move-in');window.dispatchEvent(new Event('opening-changed'))},quiet()?0:1800)},quiet()?0:650)},quiet()?0:850)}
+function curtain(){sleepBehindSofa();stage=document.createElement('dialog');stage.id='stage-dialog';stage.setAttribute('aria-label','Willkommen bei Lerndachs');stage.innerHTML=`<div class="stage-peek"><svg viewBox="-85 -145 190 180" aria-hidden="true">${WorldArt.badger('portrait')}<g class="stage-wave"><ellipse cx="73" cy="-22" rx="16" ry="20" fill="#9ba4a1" stroke="#363c48" stroke-width="4"/><path d="M66-30v7m8-9v8m8-5v7" stroke="#363c48" stroke-width="2" stroke-linecap="round"/></g></svg></div><div class="curtain-panel curtain-left"></div><div class="curtain-panel curtain-right"></div><div class="curtain-valance"></div><div class="stage-greeting" hidden><p>Hallo, schön dass du da bist.<br>Wollen wir spielen?</p><div><button id="stage-yes">Ja</button><button id="stage-listen" aria-label="Begrüßung anhören">${icon('sound')}</button></div></div>`;document.body.append(stage);stage.addEventListener('cancel',e=>e.preventDefault());stage.showModal();function align(){const head=document.querySelector('[data-kind="dachs"] .badger-sleep-head'),box=head?.getBoundingClientRect();const x=Math.max(70,Math.min(innerWidth-70,box?box.x+box.width/2:innerWidth*.5)),y=Math.max(210,Math.min(innerHeight-150,box?box.y+box.height/2:innerHeight*.55));stage.style.setProperty('--seam',x+'px');stage.style.setProperty('--peek-y',y+'px')}align();window.addEventListener('resize',align);stageTimer=setTimeout(()=>{stage.classList.add('peeking');stage.querySelector('.stage-greeting').hidden=false;stage.querySelector('#stage-yes').focus({preventScroll:true});voiceQueue=play('welcome')},1500);stage.querySelector('#stage-listen').onclick=()=>{voiceQueue=play('welcome')};stage.querySelector('#stage-yes').onclick=()=>{clearTimeout(stageTimer);if(!welcomed)enqueue('welcome');p.opening='dachs';J.save();show();stage.classList.add('opening');setTimeout(()=>{stage.close();stage.remove();window.removeEventListener('resize',align);enqueue('find-dachs')},quiet()?0:1500)}}
+function explore(id){if(modern){if(p.opening==='dachs'&&id==='dachs')awaken();return}if(p.opening==='explore'){p.openingTouches=(p.openingTouches||0)+1;if(p.openingTouches>=3){p.opening='couch';J.bring('sofa')}}else if(p.opening==='couch'&&id==='sofa'){p.opening='dachs';sleepBehindSofa();WorldSound.effect('dachs')}else if(p.opening==='dachs'&&id==='dachs'){p.opening='move-in';const d=Lernwelt.find('dachs'),s=Lernwelt.find('sofa');d.x=s?s.x+260:1020;d.y=790;d.layer=4;d.pose='standing';J.render()}else return;J.save();show()}
+document.querySelector('#room-guide-action').onclick=()=>{if(p.opening==='couch'){J.bring('sofa');Lernwelt.focus('sofa')}else if(p.opening==='move-in'){if(J.player())moveIn();else LerndachsFriends.open('initial',moveIn)}else if(p.opening==='earn')startLearning();else J.showShop()};
+document.querySelector('#room-guide-read').onclick=()=>{if(p.opening==='dachs')enqueue('find-dachs');else if(p.opening==='move-in')enqueue('move-in');else if('speechSynthesis'in window){speechSynthesis.cancel();const s=new SpeechSynthesisUtterance(lines[p.opening]);s.lang='de-DE';s.rate=.85;speechSynthesis.speak(s)}};
+window.addEventListener('world-use',e=>setTimeout(()=>explore(e.detail.id),180));window.addEventListener('world-move',e=>{if(!modern){if(['explore','couch','dachs'].includes(p.opening)&&e.detail.id==='sofa')sleepBehindSofa();explore(e.detail.id)}});window.addEventListener('world-touch',()=>{if(!modern)explore()});window.addEventListener('request-opening',show);window.addEventListener('request-earn-stars',startLearning);window.addEventListener('opening-changed',show);window.addEventListener('world-saved',()=>{if(voice&&WorldSound?.status.enabled===false)voice.pause()});
+document.querySelector('#welcome-hint').hidden=true;if(modern&&p.opening==='curtain')curtain();else if(modern&&p.opening==='waking'){p.opening='dachs';sleepBehindSofa()}else if(modern&&p.opening==='dachs')sleepBehindSofa();else{const d=Lernwelt.find('dachs');if(d&&!d.pose){if(['explore','couch','dachs'].includes(p.opening))sleepBehindSofa();else{d.pose='standing';d.y=790;d.layer=4;J.render()}}}show();
+window.LerndachsOnboarding={replay:()=>enqueue(p.opening==='dachs'?'find-dachs':'move-in')};
 })();
 
 ;
@@ -3506,7 +3467,7 @@ document.addEventListener('pointerout',e=>{const node=e.target.closest(hoverSele
 document.addEventListener('focusin',e=>{const node=e.target.closest(hoverSelector);if(node)hoverPreview(node)});
 // Move the sprite only. Dragging, saving, or changing rooms never changes its home coordinates.
 function roam(){if(document.hidden||quiet()||document.querySelector('dialog[open]')||document.body.classList.contains('is-dragging'))return;
- const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
+ const nodes=[...document.querySelectorAll('#objects [data-kind="cat"],#objects [data-kind="dog"],#objects [data-kind="rabbit"],#objects [data-kind="hamster"]')];const node=nodes[Math.floor(Math.random()*nodes.length)];if(!node||node.classList.contains('selected'))return;
  const o=Lernwelt.find(node.dataset.kind),dx=o?.x>1300?-85:o?.x<150?85:Math.random()<.5?-85:85;
  animate(node.querySelector('.sprite'),[{transform:'translate(0,0)'},{transform:`translate(${dx/2}px,-7px)`,offset:.15},{transform:`translate(${dx}px,0)`,offset:.3},{transform:`translate(${dx}px,-5px)`,offset:.5},{transform:`translate(${dx/2}px,-7px)`,offset:.75},{transform:'translate(0,0)'}],{duration:6500,easing:'ease-in-out'});setTimeout(()=>{if(node.isConnected)gesture(node,'dance')},2100);
 }
@@ -3537,7 +3498,7 @@ window.addEventListener('stars-earned',({detail})=>{
  if(quiet()){star.remove();finish();continue}const dx=dest.left+dest.width/2-x,dy=dest.top+dest.height/2-y;
  const bend=90+(i%5)*18,side=dx>=0?-1:1,cx=dx*.45+side*bend,cy=dy*.4-100-(i%3)*20;
  const frames=Array.from({length:41},(_,step)=>{const t=step/40,px=2*(1-t)*t*cx+t*t*dx,py=2*(1-t)*t*cy+t*t*dy;return {offset:t,transform:`translate(calc(-50% + ${px}px),calc(-50% + ${py}px)) rotate(${(i%2?1:-1)*t*180}deg) scale(${.55+Math.sin(t*Math.PI)*.55})`,opacity:Math.min(1,t*8)}});
- const a=animate(star,frames,{duration:2100+i%3*120,delay:i*65,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
+ const a=animate(star,frames,{duration:3400+i%3*180,delay:i*95,easing:'cubic-bezier(.35,0,.65,1)',fill:'both'});let done=false;const settle=()=>{if(done)return;done=true;star.remove();finish()};if(a)a.finished.then(settle,settle);else settle();
  }
  });
 });
@@ -3568,7 +3529,9 @@ function departure(){
 function visit(reason='invite'){
  if(document.hidden||document.querySelector('dialog[open]'))return;
  const serial=++visitSerial;clearTimeout(leaveTimer);clearTimeout(arrivalTimer);visitor.getAnimations().forEach(a=>a.cancel());stopWalking();visitor.hidden=false;visiting=true;visitor.querySelector('svg').style.transform='';
- const daily=!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
+ if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;
+ const eligible=!J.profile.firstVisitDay||day()>J.profile.firstVisitDay;
+ const daily=eligible&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
  visitor.querySelector('p').textContent=reason==='success'?'Geschafft! Das haben wir toll gemacht!':daily?'Schön, dass du da bist! Ich schenke dir heute 25 Sterne. Magst du mit einem Rätsel noch mehr verdienen?':'Hallo! Magst du mit mir eine Aufgabe lösen und Sterne sammeln?';
  visitor.querySelector('.visit-speech > div').hidden=reason==='success';
  const duration=2200,distance=visitor.getBoundingClientRect().left+visitor.querySelector('svg').getBoundingClientRect().width+30;
@@ -3581,7 +3544,11 @@ visitor.querySelector('#visit-play').onclick=()=>{departure();if(J.profile.openi
 window.addEventListener('task-waiting',()=>visit());
 window.addEventListener('learning-success',()=>{celebrateAfterTask=true;const content=document.querySelector('#learning-content');content.querySelector('.success-friends')?.remove();const team=document.createElement('div');team.className='success-friends';team.setAttribute('aria-label','Dachs und deine Figur springen vor Freude');const player=J.player();team.innerHTML=`<svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>${player?`<svg viewBox="-100 -260 200 280" aria-hidden="true">${J.art(player.id,undefined,player.appearance)}</svg>`:''}`;content.querySelector('#answer-feedback')?.after(team);team.querySelectorAll('svg').forEach(n=>gesture(n));});
 document.querySelector('#learning-dialog').addEventListener('close',()=>{if(celebrateAfterTask){celebrateAfterTask=false;setTimeout(()=>visit('success'),250)}});
-function welcome(){if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
+function welcome(){if(J.profile.firstVisitDay&&day()<=J.profile.firstVisitDay)return;if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
 setTimeout(welcome,1800);setInterval(welcome,30000);window.addEventListener('opening-changed',()=>setTimeout(welcome,1200));
 window.LerndachsLiving={visit,departure,roam,gesture};
 })();
+
+;
+/* Modal chrome stays outside its independently scrolling content. */
+(()=>{let queued=false;const ids='#close-panel,#close-character,#adult-close,#learn-close,#schedule-close,#halloween-close';function tidy(){queued=false;for(const dialog of document.querySelectorAll('dialog[open]:not(#stage-dialog)')){const close=dialog.querySelector(ids);if(!close)continue;dialog.classList.add('fixed-menu');let scroll=dialog.querySelector(':scope > .menu-scroll-content');if(!scroll){scroll=document.createElement('div');scroll.className='menu-scroll-content';for(const child of [...dialog.childNodes])if(child!==close&&!child.classList?.contains('wallet-portal'))scroll.append(child);dialog.append(scroll)}if(close.parentElement!==dialog)dialog.append(close);for(const child of [...dialog.childNodes])if(child!==scroll&&child!==close&&!child.classList?.contains('wallet-portal'))scroll.append(child)}}new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(tidy)}}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});tidy()})();
