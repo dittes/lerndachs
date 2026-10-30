@@ -92,7 +92,7 @@ function exploreAndMoveIn(game){
  assert.equal(document.querySelectorAll('[data-person]').length,4);
  click('[data-person="lumi"]');
  document.querySelector('#person-form').dispatchEvent(new context.Event('submit',{cancelable:true}));
- assert.equal(context.LerndachsJourney.player().characterName,'Lumi');
+ assert.equal(context.LerndachsJourney.player().characterName,'Sophia');
 }
 
 test('play, discover, move in, buy, then choose a class and earn the next item',()=>{

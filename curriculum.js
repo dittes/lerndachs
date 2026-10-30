@@ -75,14 +75,14 @@ window.LerndachsCurriculum = Object.freeze({
         [
           "tea",
           "Zeit für eine Teepause.",
-          "Milo und Lumi bekommen je eine Tasse. Wie viele brauchst du?",
+          "Max und Sophia bekommen je eine Tasse. Wie viele brauchst du?",
           [
             "1",
             "2",
             "3"
           ],
           1,
-          "Eine für Milo und eine für Lumi: zwei Tassen.",
+          "Eine für Max und eine für Sophia: zwei Tassen.",
           "☕ + ☕",
           {
             "id": "numbers1",
@@ -591,7 +591,7 @@ window.LerndachsCurriculum = Object.freeze({
           ],
           1,
           "Gießen ist eine Tätigkeit. Ein solches Wort nennt man Verb.",
-          "Was tut Lumi?",
+          "Was tut Sophia?",
           {
             "id": "words10",
             "level": "weiter",
@@ -851,7 +851,7 @@ window.LerndachsCurriculum = Object.freeze({
         [
           "sofa",
           "Ein Platz für beide.",
-          "Milo und Lumi wollen denselben Platz. Was hilft ihnen?",
+          "Max und Sophia wollen denselben Platz. Was hilft ihnen?",
           [
             "Sich anschreien",
             "Ruhig absprechen und abwechseln",
@@ -859,7 +859,7 @@ window.LerndachsCurriculum = Object.freeze({
           ],
           1,
           "Sie können miteinander sprechen und eine faire Lösung finden.",
-          "Milo + Lumi → ?",
+          "Max + Sophia → ?",
           {
             "id": "nature9",
             "level": "weiter",

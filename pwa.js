@@ -10,7 +10,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-install-app]'))
 if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){
  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>{
   registration=r;
-  const ready=()=>announce('Eine neue Version von Lerndachs ist bereit. Dein Spielstand bleibt gespeichert.','Aktualisieren',()=>{LerndachsJourney.save();r.waiting?.postMessage({type:'ACTIVATE_UPDATE'});navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true})});
+  const ready=()=>announce('Eine neue Version von Lerndachs ist bereit. Dein Spielstand bleibt gespeichert.','Aktualisieren',()=>{LerndachsJourney.save();if(r.waiting){navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});r.waiting.postMessage({type:'ACTIVATE_UPDATE'})}else location.reload()});
   if(r.waiting)ready();r.addEventListener('updatefound',()=>{const w=r.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)ready()})});
  }).catch(()=>{document.body.dataset.offlineCache='unavailable'});
 }

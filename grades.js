@@ -362,15 +362,15 @@ const additions=[
     "path": "words",
     "task": [
       "books",
-      "Eine Nachricht von Lumi.",
-      "Lies: „Lumi gießt die Pflanze. Danach stellt sie die Kanne ins Regal.“ Was tut Lumi zuerst?",
+      "Eine Nachricht von Sophia.",
+      "Lies: „Sophia gießt die Pflanze. Danach stellt sie die Kanne ins Regal.“ Was tut Sophia zuerst?",
       [
         "Sie liest ein Buch",
         "Sie gießt die Pflanze",
         "Sie räumt das Regal aus"
       ],
       1,
-      "Das Gießen steht vor „danach“. Lumi gießt zuerst die Pflanze.",
+      "Das Gießen steht vor „danach“. Sophia gießt zuerst die Pflanze.",
       "Zuerst … danach …",
       {
         "id": "g3-words-0",
@@ -482,14 +482,14 @@ const additions=[
     "task": [
       "cat",
       "Eine Geschichte von gestern.",
-      "Welche Form passt: „Gestern … Milo in den Garten.“?",
+      "Welche Form passt: „Gestern … Max in den Garten.“?",
       [
         "gehen",
         "geht",
         "ging"
       ],
       2,
-      "„Gestern ging Milo in den Garten.“ verwendet eine Vergangenheitsform.",
+      "„Gestern ging Max in den Garten.“ verwendet eine Vergangenheitsform.",
       "Gestern …",
       {
         "id": "g3-words-4",
@@ -540,15 +540,15 @@ const additions=[
     "task": [
       "books",
       "Die kleine Suchgeschichte.",
-      "Lumi sucht ihre Kanne. Milo sagt: „Ich habe sie nach dem Gießen unter das Regal gestellt.“ Wo sollte Lumi suchen?",
+      "Sophia sucht ihre Kanne. Max sagt: „Ich habe sie nach dem Gießen unter das Regal gestellt.“ Wo sollte Sophia suchen?",
       [
         "Im Kühlschrank",
         "Unter dem Regal",
         "Auf dem Sofa"
       ],
       1,
-      "Milo nennt den Ort ausdrücklich: unter dem Regal.",
-      "Eine Spur von Milo",
+      "Max nennt den Ort ausdrücklich: unter dem Regal.",
+      "Eine Spur von Max",
       {
         "id": "g4-words-0",
         "level": "grade4",
@@ -561,7 +561,7 @@ const additions=[
           27,
           44
         ],
-        "hint": "Suche nach der Ortsangabe in Milos Satz."
+        "hint": "Suche nach der Ortsangabe im Satz von Max."
       }
     ]
   },
@@ -661,9 +661,9 @@ const additions=[
       "Ein Plan für morgen.",
       "Welcher Satz steht im Futur?",
       [
-        "Milo spielte Gitarre.",
-        "Milo spielt Gitarre.",
-        "Milo wird Gitarre spielen."
+        "Max spielte Gitarre.",
+        "Max spielt Gitarre.",
+        "Max wird Gitarre spielen."
       ],
       2,
       "„Wird spielen“ ist die Zukunftsform Futur.",
@@ -1075,7 +1075,7 @@ const additions=[
 ];
 for(const entry of additions){entry.task[7].type='choice';bank.paths.find(p=>p.id===entry.path).items.push(entry.task)}
 const missions=[
-['tea','Ein Platz für Milo.','Gib Milo die Teetasse in die Hand. Ziehe sie an seine Hand, bis er sie hält.',[],0,'Du hast die Tasse gezielt zu Milo bewegt. Erzähl ihm, wo du sie gefunden hast.','☕ → Milo',{id:'world-tea',grades:[0,1,2,3,4],type:'world',goal:'carry',skill:'Gegenstände räumlich zuordnen und eine Handlung beschreiben',source:'german',pages:[27,38],hint:'Milos Hand ist etwa auf Höhe seines Bauchs. Ziehe die Tasse nah genug heran.'}],
+['tea','Ein Platz für Max.','Gib Max die Teetasse in die Hand. Ziehe sie an seine Hand, bis er sie hält.',[],0,'Du hast die Tasse gezielt zu Max bewegt. Erzähl ihm, wo du sie gefunden hast.','☕ → Max',{id:'world-tea',grades:[0,1,2,3,4],type:'world',goal:'carry',skill:'Gegenstände räumlich zuordnen und eine Handlung beschreiben',source:'german',pages:[27,38],hint:'Die Hand von Max ist etwa auf Höhe seines Bauchs. Ziehe die Tasse nah genug heran.'}],
 ['watering','Eine Pflanze zieht ein.','Ziehe die Gießkanne zur Monstera und tippe dann die Gießkanne an.',[],0,'Du hast der Pflanze Wasser gegeben. Beobachte Pflanzen auch im echten Alltag gemeinsam mit Erwachsenen.','💧 → 🌱',{id:'world-water',grades:[0,1,2,3,4],type:'world',goal:'water',skill:'Einen alltagsnahen Handlungsablauf erproben',source:'science',pages:[15,28,38],hint:'Die Kanne muss nah bei der Pflanze stehen. Dann kannst du sie benutzen.'}],
 ['stool','Links vom Tisch.','Stelle einen Hocker links neben den Sofatisch. Probiere aus, wie die Dinge zusammenpassen.',[],0,'Dein Hocker steht links neben dem Tisch. Beschreibe die Lage mit deinen eigenen Worten.','Hocker ← Tisch',{id:'world-left',grades:[0,1,2,3,4],type:'world',goal:'left',skill:'Räumliche Lagebeziehungen handelnd erkunden',source:'math',pages:[50],hint:'Links ist auf deinem Bildschirm die Seite des linken Pfeils. Der Hocker soll nahe beim Tisch stehen.'}],
 ['sun','Licht und Schatten.','Tippe auf die Sonne und verwandle den Tag in eine Nacht. Wenn schon Nacht ist, mache erst Tag.',[],0,'Die Spielwelt wurde dunkel. Im echten Leben entsteht Nacht durch die Drehung der Erde.','☀ → ☾',{id:'world-night',grades:[0,1,2,3,4],type:'world',goal:'night',skill:'Eine Veränderung beobachten und beschreiben',source:'science',pages:[15,28,42],hint:'Die Sonne findest du draußen vor dem Fenster.'}],
