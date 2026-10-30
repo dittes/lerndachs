@@ -19,7 +19,7 @@ function raiseArms(arm){
  animate(arm,[{transform:'rotate(0deg)'},{transform:`rotate(${left?125:-125}deg)`,offset:.23},{transform:`rotate(${left?125:-125}deg)`,offset:.75},{transform:'rotate(0deg)'}],{duration:1500,easing:'ease-in-out'});
 }
 window.addEventListener('world-use',e=>{const node=document.querySelector(`[data-uid="${e.detail.uid}"]`);if(node?.classList.contains('person')||LerndachsWorld.pets.some(p=>p.id===e.detail.id))gesture(node,Math.random()<.5?'dance':'cheer')});
-window.addEventListener('character-celebrate',()=>document.querySelectorAll('#objects .person').forEach(n=>gesture(n)));
+window.addEventListener('character-celebrate',()=>document.querySelectorAll('#objects .person,#objects [data-kind="dachs"],#dachs-visit:not([hidden])').forEach(n=>gesture(n)));
 // Hover previews are visual only: they never invoke use(), sounds, purchases or saving.
 const hoverRuns=new WeakMap(),hoverTimes=new WeakMap();
 const hoverSelector='.movable,.furnishing-item,.people-grid>button,.card-grid .item-card,.pet-portrait,.avatar-preview,.avatar-tiles>button';
@@ -65,10 +65,10 @@ window.addEventListener('stars-earned',({detail})=>{
  });
 });
 // The phone is fixed to the wall, independent of furniture and the scrolling scene.
-const phone=document.createElementNS('http://www.w3.org/2000/svg','g');phone.id='wall-phone';phone.setAttribute('transform','translate(1120 270)');phone.setAttribute('tabindex','0');phone.setAttribute('role','button');phone.setAttribute('aria-label','Dachs anrufen');phone.innerHTML=`<title>Dachs anrufen</title><rect x="-42" y="-65" width="84" height="130" rx="20" fill="#f6cc72" stroke="#363c48" stroke-width="4"/><path d="M-24-38Q-47 0-24 36l13-12-8-14V-9l8-16Z" fill="#79c5ad" stroke="#363c48" stroke-width="4"/><path d="M-21 38q-15 35 10 35t20-26" fill="none" stroke="#363c48" stroke-width="3"/>${[0,1,2,3,4,5].map(i=>`<circle cx="${6+i%2*17}" cy="${-15+Math.floor(i/2)*18}" r="4" fill="#363c48"/>`).join('')}<text x="9" y="-39" text-anchor="middle" font-size="12" font-weight="bold" fill="#363c48">DACHS</text>`;document.querySelector('#world').append(phone);
+const phone=document.createElementNS('http://www.w3.org/2000/svg','g');phone.id='wall-phone';phone.setAttribute('transform','translate(1120 270)');phone.setAttribute('tabindex','0');phone.setAttribute('role','button');phone.setAttribute('aria-label','Dachs anrufen');phone.innerHTML=`<title>Dachs anrufen</title><rect x="-42" y="-65" width="84" height="130" rx="20" fill="#f6cc72" stroke="#363c48" stroke-width="4"/><path d="M-24-38Q-47 0-24 36l13-12-8-14V-9l8-16Z" fill="#79c5ad" stroke="#363c48" stroke-width="4"/><path d="M-21 38q-15 35 10 35t20-26" fill="none" stroke="#363c48" stroke-width="3"/>${[0,1,2,3,4,5].map(i=>`<circle cx="${6+i%2*17}" cy="${-15+Math.floor(i/2)*18}" r="4" fill="#363c48"/>`).join('')}<text x="9" y="-39" text-anchor="middle" font-size="12" font-weight="bold" fill="#363c48">DACHS</text>`;document.querySelector('#wall-fixtures').append(phone);
 for(const type of ['pointerdown','pointerup'])phone.addEventListener(type,e=>e.stopPropagation());phone.addEventListener('click',()=>visit('call'));phone.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();visit('call')}});
-const visitor=document.createElement('aside');visitor.id='dachs-visit';visitor.hidden=true;visitor.setAttribute('aria-label','Dachs ist zu Besuch');visitor.innerHTML=`<div class="visit-speech"><p role="status" aria-live="polite"></p><div><button id="visit-play">Zusammen spielen</button><button id="visit-later">Später</button></div></div><svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>`;document.querySelector('.game-shell').append(visitor);
-let leaveTimer,arrivalTimer,celebrateAfterTask=false,visiting=false;
+const visitor=document.createElement('aside');visitor.id='dachs-visit';visitor.hidden=true;visitor.setAttribute('aria-label','Dachs ist zu Besuch');visitor.innerHTML=`<div class="visit-speech"><p role="status" aria-live="polite"></p><div><button id="visit-read" aria-label="Vorlesen">${icon('sound')}</button><button id="visit-play">Zusammen spielen</button><button id="visit-later">Später</button></div></div><svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>`;document.querySelector('.game-shell').append(visitor);
+let leaveTimer,arrivalTimer,visiting=false;
 const day=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 let gait=[],visitSerial=0;
 function walk(duration){
@@ -88,25 +88,26 @@ function departure(){
  const a=animate(visitor,[{transform:'translateX(0)'},{transform:`translateX(${-distance}px)`}],{duration,easing:'linear',fill:'forwards'});
  const done=()=>{if(serial!==visitSerial)return;visitor.hidden=true;stopWalking();a?.cancel()};if(a)a.finished.then(done,done);else done();
 }
+function wave(node){const arm=node.querySelector('.badger-wave,.badger-arm');if(!arm||quiet())return;animate(arm,[{transform:'rotate(0deg)'},{transform:'rotate(-30deg)'},{transform:'rotate(10deg)'},{transform:'rotate(-30deg)'},{transform:'rotate(0deg)'}],{duration:1000,easing:'ease-in-out'})}
 function visit(reason='invite'){
  if(document.hidden||document.querySelector('dialog[open]'))return;
+ if(reason==='call'){const resident=document.querySelector('#objects [data-kind="dachs"]');if(resident){wave(resident);return}if(visiting&&!visitor.hidden){wave(visitor);return}}
+ if(J.profile.opening!=='done')return;
  const serial=++visitSerial;clearTimeout(leaveTimer);clearTimeout(arrivalTimer);visitor.getAnimations().forEach(a=>a.cancel());stopWalking();visitor.hidden=false;visiting=true;visitor.querySelector('svg').style.transform='';
- if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;
  const eligible=!J.profile.firstVisitDay||day()>J.profile.firstVisitDay;
  const daily=eligible&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day());
  visitor.querySelector('p').textContent=reason==='success'?'Geschafft! Das haben wir toll gemacht!':daily?'Schön, dass du da bist! Ich schenke dir heute 25 Sterne. Magst du mit einem Rätsel noch mehr verdienen?':'Hallo! Magst du mit mir eine Aufgabe lösen und Sterne sammeln?';
- visitor.querySelector('.visit-speech > div').hidden=reason==='success';
+ visitor.querySelector('.visit-speech > div').hidden=false;
  const duration=2200,distance=visitor.getBoundingClientRect().left+visitor.querySelector('svg').getBoundingClientRect().width+30;
  if(!quiet())visitor.classList.add('is-walking');walk(duration);
  animate(visitor,[{transform:`translateX(${-distance}px)`},{transform:'translateX(0)'}],{duration,easing:'linear'});
- arrivalTimer=setTimeout(()=>{if(!visiting||serial!==visitSerial)return;stopWalking();if(daily)Lernwelt.reward('daily-visit-'+day(),25);if(reason==='success'){gesture(visitor);const player=J.player();if(player)gesture(document.querySelector(`[data-uid="${player.uid}"]`));leaveTimer=setTimeout(departure,2200)}},quiet()?0:duration);
+ arrivalTimer=setTimeout(()=>{if(!visiting||serial!==visitSerial)return;stopWalking();window.LerndachsSpeech?.speak(visitor.querySelector('p').textContent);if(daily)Lernwelt.reward('daily-visit-'+day(),25);if(reason==='success'){gesture(visitor);const player=J.player();if(player)gesture(document.querySelector(`[data-uid="${player.uid}"]`));leaveTimer=setTimeout(departure,2200)}},quiet()?0:duration);
  if(reason!=='success')leaveTimer=setTimeout(departure,24000);
 }
 visitor.querySelector('#visit-play').onclick=()=>{departure();if(J.profile.opening!=='done')window.dispatchEvent(new Event('request-opening'));else Learning.nextFresh(true)};visitor.querySelector('#visit-later').onclick=departure;
 window.addEventListener('task-waiting',()=>visit());
-window.addEventListener('learning-success',()=>{celebrateAfterTask=true;const content=document.querySelector('#learning-content');content.querySelector('.success-friends')?.remove();const team=document.createElement('div');team.className='success-friends';team.setAttribute('aria-label','Dachs und deine Figur springen vor Freude');const player=J.player();team.innerHTML=`<svg viewBox="-100 -260 200 280" aria-hidden="true">${WorldArt.badger()}</svg>${player?`<svg viewBox="-100 -260 200 280" aria-hidden="true">${J.art(player.id,undefined,player.appearance)}</svg>`:''}`;content.querySelector('#answer-feedback')?.after(team);team.querySelectorAll('svg').forEach(n=>gesture(n));});
-document.querySelector('#learning-dialog').addEventListener('close',()=>{if(celebrateAfterTask){celebrateAfterTask=false;setTimeout(()=>visit('success'),250)}});
+visitor.querySelector('#visit-read').onclick=()=>window.LerndachsSpeech?.speak(visitor.querySelector('p').textContent);
 function welcome(){if(J.profile.firstVisitDay&&day()<=J.profile.firstVisitDay)return;if(J.profile.onboardingVersion===2&&J.profile.opening!=='done')return;if(!visiting&&!document.querySelector('dialog[open]')&&!Lernwelt.snapshot().receipts.includes('daily-visit-'+day()))visit('welcome')}
 setTimeout(welcome,1800);setInterval(welcome,30000);window.addEventListener('opening-changed',()=>setTimeout(welcome,1200));
-window.LerndachsLiving={visit,departure,roam,gesture};
+window.LerndachsLiving={visit,departure,roam,gesture,wave};
 })();

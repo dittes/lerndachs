@@ -54,9 +54,10 @@ function loadGame(saved,{realAudio=false,reducedMotion=false,speech=false}={}){
  context.window=context;vm.createContext(context);
  // These regression cases deliberately cover an existing legacy world; the new
  // curtain flow and first-visit dates are exercised in browser acceptance tests.
- if(!saved){vm.runInContext(read('world-art.js')+'\n;'+read('world-config.js'),context);stored=JSON.stringify({version:3,balance:0,owned:['garden','radio',...context.LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:context.LerndachsWorld.empty()},stored:{},receipts:[],journey:{opening:'explore'}})}
+ if(!saved){vm.runInContext(read('world-art.js')+'\n;'+read('world-config.js'),context);stored=JSON.stringify({version:3,balance:0,owned:['garden','radio',...context.LerndachsWorld.environment],home:'garden',night:false,paused:false,wallpapers:{},placed:{garden:context.LerndachsWorld.empty()},stored:{},receipts:[],journey:{opening:'explore',curtainFlowVersion:1}})}
  vm.runInContext(read('app.js').split('/* Visits and gestures are transient.')[0],context,{filename:'app.js'});
- if(!realAudio)context.WorldSound={effect(){},sync(){},nextStation(){},stopSample(){}};
+ if(speech)context.LerndachsSpeech={speak(text){if(context.WorldSound?.status.enabled!==false)spoken.push(text)},stop(){},task(){}};
+ if(!realAudio)context.WorldSound={status:{enabled:false,volume:.6},effect(){},sync(){},nextStation(){},stopSample(){}};
  const advance=milliseconds=>{
   const end=now+milliseconds;
   while(true){

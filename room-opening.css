@@ -60,3 +60,5 @@ body:is([data-opening="explore"],[data-opening="couch"],[data-opening="dachs"],[
 @media(max-height:550px) and (min-width:601px){#room-guide{left:20px;top:auto;bottom:95px;transform:none;padding:12px 16px}#room-guide-text{font-size:17px}.first-shop .item-art{height:105px}}
 @media(prefers-reduced-motion:reduce){#world .reacting .sprite{animation:none!important}}
 .no-motion #world .reacting .sprite{animation:none!important}
+
+#room-guide-later{background:var(--color-paper)}.room-guide-actions{flex-wrap:wrap}

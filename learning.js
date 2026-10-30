@@ -14,7 +14,7 @@ const taskKey=q=>['garden','memory'].includes(q[7].type)?q[7].id+'-g'+progress.g
 const finished=q=>progress.done.includes(taskKey(q));
 function persist(){J.save()}
 function stopSample(){clearTimeout(sampleTimer);window.WorldSound?.stopSample?.()}
-function cleanup(){stopSample();clearTimeout(memoryTimer);window.speechSynthesis?.cancel()}
+function cleanup(){dialog.classList.remove('task-complete');stopSample();clearTimeout(memoryTimer);window.LerndachsSpeech?.stop()}
 function reveal(){if(!dialog.open)dialog.showModal();dialog.scrollTop=0}
 function close(){cleanup();dialog.close();mode='world';if(progress.active)seek()}
 function resetStrip(){strip.hidden=true;document.querySelector('#adventure-button').hidden=false}
@@ -34,15 +34,13 @@ function starter(){window.dispatchEvent(new Event('request-opening'))}
 function targetCard(){const i=J.catalogue.find(i=>i.id===progress.target);if(!i)return '';const balance=Lernwelt.snapshot().balance,remaining=Math.max(0,i.price-balance);return `<div class="target-card"><div class="target-art">${J.preview(i,WorldArt.homes.some(h=>h.id===i.id))}</div><div><small>DEIN NÄCHSTES ZIEL</small><strong>${escape(i.name)}</strong><span>${balance} / ${i.price} Sterne · ${remaining?`noch ${Math.ceil(remaining/15)} neue Aufgaben`:'Du hast genug Sterne!'}</span><progress max="${i.price||1}" value="${Math.min(balance,i.price)}" aria-label="Sterne für dein Sparziel"></progress></div><button id="target-shop">${remaining?'Laden':'Holen'} →</button></div>`}
 function open(){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(true));return}cleanup();document.querySelector('#panel').close();mode='menu';menu();reveal()}
 const partnerInvitation='Komm, wir sammeln Sterne!';
-function readPartnerInvitation(){
- speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(partnerInvitation+' Was möchtest du spielen?');speech.lang='de-DE';speech.rate=.85;speechSynthesis.speak(speech);
-}
+function readPartnerInvitation(){LerndachsSpeech.speak(partnerInvitation+' Was möchtest du spielen?')}
 function invite(){
  if(!progress.starterUnlocked){starter();return}
  cleanup();document.querySelector('#panel').close();mode='menu';document.querySelector('#learn-close').hidden=false;
  const labels={numbers:'Rechnen',words:'Lesen',nature:'Natur',music:'Musik',art:'Farben',media:'Medien'};
- content.innerHTML=`<div class="learn-intro partner-intro"><div class="guide-face">${badger}</div><h2 id="learn-title">${partnerInvitation}</h2><p>Was möchtest du spielen?</p>${'speechSynthesis'in window?`<button id="read-partner" class="task-icon" aria-label="Vorlesen">${icon('sound')}</button>`:''}</div><div class="path-grid partner-paths">${paths.map(p=>`<button class="learning-path ${p.color}" data-path="${p.id}"><span class="path-symbol" aria-hidden="true">${p.icon}</span><strong>${labels[p.id]}</strong></button>`).join('')}</div>`;
- reveal();if('speechSynthesis'in window&&WorldSound.status.enabled)readPartnerInvitation();
+ content.innerHTML=`<div class="learn-intro partner-intro"><div class="guide-face">${badger}</div><h2 id="learn-title">${partnerInvitation}</h2><p>Was möchtest du spielen?</p>${!!window.LerndachsSpeech?`<button id="read-partner" class="task-icon" aria-label="Vorlesen">${icon('sound')}</button>`:''}</div><div class="path-grid partner-paths">${paths.map(p=>`<button class="learning-path ${p.color}" data-path="${p.id}"><span class="path-symbol" aria-hidden="true">${p.icon}</span><strong>${labels[p.id]}</strong></button>`).join('')}</div>`;
+ reveal();if(!!window.LerndachsSpeech&&WorldSound.status.enabled)readPartnerInvitation();
 }
 
 function menu(){
@@ -75,10 +73,10 @@ function question(){
  else interaction=`<div class="answer-grid">${q[3].map((a,i)=>`<button data-answer="${i}"><b>${String.fromCharCode(65+i)}</b>${escape(a)}</button>`).join('')}</div>`;
  content.innerHTML=commonQuestion(q)+interaction+footer();
  if(q[7].type==='garden')renderGarden();if(q[7].type==='memory')startMemory();
- if(!('speechSynthesis' in window))document.querySelector('#read-question').hidden=true;reveal();
+ if(!(!!window.LerndachsSpeech))document.querySelector('#read-question').hidden=true;reveal();
 }
 function success(q){
- if(correct)return;correct=true;stopSample();window.LerndachsEvidence?.finish(q);window.dispatchEvent(new Event('learning-celebration'));const already=finished(q);J.reward(taskKey(q));if(!already)window.dispatchEvent(new Event('character-celebrate'));
+ if(correct)return;correct=true;stopSample();window.LerndachsEvidence?.finish(q);window.dispatchEvent(new Event('learning-celebration'));const already=finished(q);J.reward(taskKey(q));window.dispatchEvent(new Event('character-celebrate'));dialog.classList.add('task-complete');
  const feedback=document.querySelector('#answer-feedback');feedback.classList.add('correct-feedback');feedback.textContent=already?'Geschafft!':'Geschafft! +15 Sterne';
  const target=J.catalogue.find(i=>i.id===progress.target);
  document.querySelector('#reward-shop').hidden=!target||Lernwelt.snapshot().balance<target.price;
@@ -145,7 +143,7 @@ content.addEventListener('click',e=>{
  else if(b.id==='task-hint'){window.LerndachsEvidence?.hint();const hint=document.querySelector('#task-hint-text');hint.hidden=!hint.hidden;b.setAttribute('aria-expanded',!hint.hidden)}
  else if(b.id==='play-sample'){stopSample();const duration=WorldSound.playSample(currentTask()[7].audio);b.textContent='♫ Hör gut hin …';sampleTimer=setTimeout(()=>{if(b.isConnected)b.textContent='↻ Noch einmal hören'},duration+100)}
  else if(b.id==='read-partner')readPartnerInvitation();
- else if(b.id==='read-question'){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const q=currentTask(),u=new SpeechSynthesisUtterance(taskText(q,q[2])+'. '+q[3].join('. '));u.lang='de-DE';u.rate=.85;speechSynthesis.speak(u)}
+ else if(b.id==='read-question')LerndachsSpeech.task(currentTask())
 });
 function completeWorld(q){if(worldAttemptDone)return;worldAttemptDone=true;question();worldAttemptDone=true;success(q)}
 window.addEventListener('world-move',()=>{
@@ -168,5 +166,5 @@ document.querySelector('#adventure-button').onclick=()=>{progress.taskWaiting=fa
 window.addEventListener('request-starter',starter);window.addEventListener('request-learning',open);window.addEventListener('request-partner-learning',invite);
 window.Learning={get progress(){return structuredClone(progress)},get currentTask(){return currentTask()},get currentTasks(){return currentTasks()},paths,sources,grades,openSubject(subject){const p=paths.find(p=>p.subject===subject);if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(p){if(progress.grade===null)chooseGrade(()=>begin(p.id));else begin(p.id)}},nextFresh(manual=false){if(!progress.starterUnlocked||progress.opening!=='done'){starter();return}if(progress.grade===null){chooseGrade(()=>Learning.nextFresh(manual));return}const candidates=paths.flatMap(p=>tasksFor(p).filter(q=>!finished(q)).map(q=>({p,q})));if(!candidates.length){newPractice();return}const hit=candidates[(progress.promptNumber||0)%candidates.length];progress.promptNumber=(progress.promptNumber||0)+1;progress.active=hit.p.id;progress.index=tasksFor(hit.p).indexOf(hit.q);progress.worldMoves=[];persist();question();if(manual)return;const note=document.createElement('p');note.className='timed-discovery-note';note.textContent='Zehn Minuten gespielt – eine neue Entdeckung wartet!';content.prepend(note)}};
 if(!Number.isInteger(progress.grade)||!grades[progress.grade]){progress.grade=null;progress.active=null}
-updateHUD();if(progress.starterUnlocked&&progress.active)seek();
+updateHUD();if(progress.starterUnlocked&&progress.active&&progress.opening==='done')seek();
 })();
