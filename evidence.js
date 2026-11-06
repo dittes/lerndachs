@@ -3,8 +3,8 @@
 const J=LerndachsJourney,p=J.profile;let current=null;
 if(!Array.isArray(p.evidence))p.evidence=[];
 const key=q=>['garden','memory'].includes(q[7].type)?q[7].id+'-g'+p.grade:q[7].id;
-function start(q,path){current={id:key(q),grade:p.grade,subject:LerndachsCurriculum.paths.find(x=>x.id===path)?.subject||'math',skill:q[7].skill,dimension:q[7].dimension||null,errors:0,hints:0}}
-function finish(q){if(!current||current.id!==key(q))return;const row={...current,at:new Date().toISOString()};if(!p.evidence.some(e=>e.id===row.id&&e.grade===row.grade)){p.evidence.push(row);J.save()}}
+function start(q,path){window.LerndachsMissionProgress?.start(q);current={id:key(q),grade:p.grade,subject:LerndachsCurriculum.paths.find(x=>x.id===path)?.subject||'math',skill:q[7].skill,dimension:q[7].dimension||null,errors:0,hints:0}}
+function finish(q){if(!current||current.id!==key(q))return;const row={...current,at:new Date().toISOString()};window.LerndachsMissionProgress?.finish(q,current.errors,current.hints);if(!p.evidence.some(e=>e.id===row.id&&e.grade===row.grade)){p.evidence.push(row);J.save()}}
 function summary(subject,dimension){
  const tasks=LerndachsCurriculum.paths.filter(x=>x.subject===subject).flatMap(x=>x.items).filter(q=>q[7].grades.includes(p.grade)&&(!dimension||q[7].dimension===dimension));
  const allowed=new Set(tasks.map(key));
